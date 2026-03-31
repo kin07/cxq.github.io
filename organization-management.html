@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>组织管理 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 双栏布局 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 0;
+            height: calc(100vh - 0px);
+        }
+
+        .column {
+            background: white;
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .column-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: white;
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        /* 树形结构样式 */
+        .tree-node {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .tree-node:hover {
+            background: var(--column-bg);
+        }
+
+        .tree-node.selected {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .tree-toggle {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+        }
+
+        .tree-toggle.expanded {
+            transform: rotate(90deg);
+        }
+
+        .tree-toggle.hidden {
+            visibility: hidden;
+        }
+
+        .tree-icon {
+            font-size: 16px;
+            color: var(--text-secondary);
+        }
+
+        .tree-node.selected .tree-icon {
+            color: var(--primary);
+        }
+
+        .tree-children {
+            margin-left: 20px;
+            display: none;
+        }
+
+        .tree-children.expanded {
+            display: block;
+        }
+
+        .level-2 {
+            padding-left: 28px;
+        }
+
+        .tree-more-icon {
+            margin-left: auto;
+            padding: 4px;
+            border-radius: 4px;
+            opacity: 1;
+        }
+
+        .tree-more-icon:hover {
+            background: var(--border);
+        }
+
+        /* 右侧内容区域 */
+        .page-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: white;
+            position: relative;
+        }
+
+        .page-header-actions {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            background: var(--primary-bg);
+        }
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            min-width: 150px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: var(--column-bg);
+        }
+
+        .table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .table tbody tr:hover {
+            background: var(--column-bg);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #ECFDF5;
+            color: var(--success);
+        }
+
+        .status-badge.inactive {
+            background: #F1F5F9;
+            color: var(--text-secondary);
+        }
+
+        .role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .role-badge.admin {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+
+        .role-badge.user {
+            background: #E0E7FF;
+            color: var(--primary);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            margin-right: 6px;
+        }
+
+        .action-btn:hover {
+            background: var(--column-bg);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* 树节点操作菜单 */
+        .tree-node-actions {
+            position: absolute;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            z-index: 200;
+            min-width: 150px;
+            padding: 4px 0;
+            display: none;
+        }
+
+        .tree-node-actions.active {
+            display: block;
+        }
+
+        .tree-action-item {
+            padding: 9px 16px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+            transition: background 0.15s;
+        }
+
+        .tree-action-item:hover {
+            background: var(--column-bg);
+        }
+
+        .tree-action-item.delete {
+            color: var(--danger);
+        }
+
+        .tree-action-item.delete:hover {
+            background: #FEF2F2;
+        }
+
+        .tree-node-wrapper {
+            position: relative;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 12px;
+            padding: 28px 32px;
+            width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-form-group {
+            margin-bottom: 16px;
+        }
+
+        .modal-form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .modal-form-label .required {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+
+        .modal-form-input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .modal-form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .modal-form-textarea {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.2s;
+        }
+
+        .modal-form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .modal-read-field {
+            padding: 9px 12px;
+            background: var(--column-bg);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 24px;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { background: #10B981; }
+        .toast.danger  { background: var(--danger); }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+
+            .table th, .table td {
+                padding: 10px 8px;
+            }
+
+            .action-btn {
+                padding: 4px 8px;
+                margin-right: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        <!-- 第一列：组织架构树 -->
+        <div class="column">
+            <div class="column-header">
+                <span>组织架构</span>
+                <button class="btn btn-sm btn-primary" onclick="openOrgModal()">
+                    <i class="ri-add-line"></i> 新增部门
+                </button>
+            </div>
+            <div class="column-content" id="treeContainer">
+                <!-- 树形结构将由JS动态生成 -->
+            </div>
+        </div>
+
+        <!-- 第二列：用户列表内容 -->
+        <div class="column">
+            <div class="page-header">
+                <h2 class="page-title" id="pageTitle">
+                    <i class="ri-user-settings-line"></i>
+                    <span>用户列表</span>
+                </h2>
+                <div class="breadcrumb" id="breadcrumb">
+                    <i class="ri-home-line"></i>
+                    <span>></span>
+                    <span>组织管理</span>
+                    <span>></span>
+                    <span>万乾科技</span>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary" onclick="openUserModal()">
+                        <i class="ri-add-line"></i>
+                        新增用户
+                    </button>
+                </div>
+            </div>
+            <div class="content-area">
+                <!-- 搜索区域 -->
+                <div class="search-section">
+                    <div class="search-form">
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-input" placeholder="请输入用户名" id="searchName">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">状态</label>
+                            <select class="form-input" id="searchStatus">
+                                <option value="">全部</option>
+                                <option value="active">启用</option>
+                                <option value="inactive">停用</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex-direction: row; gap: 8px; align-self: flex-end;">
+                            <button class="btn btn-primary" onclick="searchData()">
+                                <i class="ri-search-line"></i>
+                                查询
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 用户列表表格 -->
+                <div class="data-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>部门</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody">
+                            <!-- 用户数据将由JS动态生成 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑部门弹窗 -->
+    <div class="modal-overlay" id="deptModal">
+        <div class="modal-box">
+            <div class="modal-title">
+                <i class="ri-folder-add-line" id="deptModalIcon"></i>
+                <span id="deptModalTitle">新增下级部门</span>
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-form-label">上级部门</label>
+                <div class="modal-read-field" id="deptParentName"></div>
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-form-label">部门名称<span class="required">*</span></label>
+                <input type="text" class="modal-form-input" id="deptName" placeholder="请输入部门名称">
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-form-label">部门编码<span class="required">*</span></label>
+                <input type="text" class="modal-form-input" id="deptCode" placeholder="请输入部门编码，如 RD">
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-form-label">备注</label>
+                <textarea class="modal-form-textarea" id="deptRemark" placeholder="可选备注说明"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeptModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitDeptModal()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 新增用户弹窗 -->
+    <div class="modal-overlay" id="userModal">
+        <div class="modal-box" style="width: 480px;">
+            <div class="modal-title">
+                <i class="ri-user-add-line"></i>
+                <span>新增用户</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px;">
+                <div class="modal-form-group">
+                    <label class="modal-form-label">用户名<span class="required">*</span></label>
+                    <input type="text" class="modal-form-input" id="userUsername" placeholder="登录账号">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-form-label">姓名<span class="required">*</span></label>
+                    <input type="text" class="modal-form-input" id="userNickname" placeholder="真实姓名">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-form-label">邮箱<span class="required">*</span></label>
+                    <input type="email" class="modal-form-input" id="userEmail" placeholder="example@domain.com">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-form-label">手机号</label>
+                    <input type="text" class="modal-form-input" id="userPhone" placeholder="请输入手机号">
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-form-label">所属部门<span class="required">*</span></label>
+                    <div style="position: relative;">
+                        <input type="text" class="modal-form-input" id="userDept" placeholder="点击选择部门" readonly onclick="openDeptSelectModal()" style="cursor: pointer; background: white;">
+                        <i class="ri-arrow-down-s-line" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); pointer-events: none;"></i>
+                    </div>
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-form-label">状态</label>
+                    <select class="modal-form-input" id="userStatus">
+                        <option value="active">启用</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-form-group">
+                <label class="modal-form-label">初始密码<span class="required">*</span></label>
+                <input type="password" class="modal-form-input" id="userPassword" placeholder="请设置初始密码">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUserModal()">取消</button>
+                <button class="btn btn-primary" onclick="submitUserModal()">确认新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门选择弹窗 -->
+    <div class="modal-overlay" id="deptSelectModal">
+        <div class="modal-box" style="width: 360px;">
+            <div class="modal-title">
+                <i class="ri-git-branch-line"></i>
+                <span>选择部门</span>
+            </div>
+            <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; padding: 8px;">
+                <div id="deptSelectTree"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeptSelectModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmDeptSelect()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 组织架构数据 - 支持多公司
+        const organizations = [
+            {
+                id: 1,
+                name: '万乾科技',
+                code: 'WQ-TECH',
+                children: [
+                    {
+                        id: 11,
+                        name: '技术部',
+                        code: 'TECH',
+                        children: [
+                            { id: 111, name: '研发组', code: 'RD', children: [] },
+                            { id: 112, name: '测试组', code: 'QA', children: [] },
+                            { id: 113, name: '运维组', code: 'OPS', children: [] }
+                        ]
+                    },
+                    {
+                        id: 12,
+                        name: '产品部',
+                        code: 'PRODUCT',
+                        children: [
+                            { id: 121, name: '产品设计', code: 'PD', children: [] },
+                            { id: 122, name: '产品运营', code: 'PO', children: [] }
+                        ]
+                    },
+                    {
+                        id: 13,
+                        name: '市场部',
+                        code: 'MARKET',
+                        children: [
+                            { id: 131, name: '市场推广', code: 'MARKETING', children: [] },
+                            { id: 132, name: '商务合作', code: 'BD', children: [] }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        // 用户数据
+        const users = [
+            { id: 1, username: 'admin', nickname: '系统管理员', role: 'admin', email: 'admin@example.com', dept: '技术部', status: 'active', createTime: '2024-01-01 10:00:00' },
+            { id: 2, username: 'zhangsan', nickname: '张三', role: 'user', email: 'zhangsan@example.com', dept: '研发组', status: 'active', createTime: '2024-01-15 14:30:00' },
+            { id: 3, username: 'lisi', nickname: '李四', role: 'user', email: 'lisi@example.com', dept: '测试组', status: 'active', createTime: '2024-02-20 09:15:00' },
+            { id: 4, username: 'wangwu', nickname: '王五', role: 'user', email: 'wangwu@example.com', dept: '产品设计', status: 'active', createTime: '2024-03-05 11:20:00' },
+            { id: 5, username: 'zhaoliu', nickname: '赵六', role: 'user', email: 'zhaoliu@example.com', dept: '市场推广', status: 'inactive', createTime: '2024-03-10 16:45:00' }
+        ];
+
+        let selectedOrgId = 1;
+        let selectedOrgName = '万乾科技';
+        let isExpanded = {};
+        let activeActionOrgId = null;
+        let nextOrgId = 200;
+
+        // ============ 工具函数 ============
+        let toastTimer = null;
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show ' + type;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.className = 'toast'; }, 2500);
+        }
+
+        // 找到指定 id 的节点（及其父节点）
+        function findNode(id, nodes, parent = null) {
+            for (const node of nodes) {
+                if (node.id === id) return { node, parent, siblings: nodes };
+                if (node.children && node.children.length) {
+                    const result = findNode(id, node.children, node);
+                    if (result) return result;
+                }
+            }
+            return null;
+        }
+
+        // ============ 渲染树 ============
+        function renderTree() {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = organizations.map(org => renderOrgNode(org, 1)).join('');
+        }
+
+        function renderOrgNode(org, level) {
+            const hasChildren = org.children && org.children.length > 0;
+            const expanded = isExpanded[org.id];
+            const selected = selectedOrgId === org.id;
+            const isRoot = level === 1;
+
+            const html = `
+                <div class="tree-node-wrapper">
+                    <div class="tree-node level-${level} ${selected ? 'selected' : ''}"
+                         data-org-id="${org.id}"
+                         onclick="selectOrg(${org.id}, '${org.name}')">
+                        <span class="tree-toggle ${hasChildren ? (expanded ? 'expanded' : '') : 'hidden'}"
+                              onclick="event.stopPropagation(); toggleOrg(${org.id})">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </span>
+                        <i class="${isRoot ? 'ri-building-line' : 'ri-folder-3-line'} tree-icon"></i>
+                        <span>${org.name}</span>
+                        <span class="tree-more-icon" onclick="event.stopPropagation(); toggleOrgActions(${org.id})">
+                            <i class="ri-more-2-fill"></i>
+                        </span>
+                    </div>
+                    <div class="tree-node-actions" id="orgActions-${org.id}">
+                        <div class="tree-action-item" onclick="openAddDept(${org.id}, '${org.name}')">
+                            <i class="ri-folder-add-line"></i> 新增下级部门
+                        </div>
+                        ${!isRoot ? `
+                        <div class="tree-action-item" onclick="openEditDept(${org.id})">
+                            <i class="ri-edit-line"></i> 编辑部门
+                        </div>
+                        <div class="tree-action-item delete" onclick="deleteDept(${org.id}, '${org.name}')">
+                            <i class="ri-delete-bin-line"></i> 删除部门
+                        </div>
+                        ` : ''}
+                    </div>
+                    ${(hasChildren || isExpanded[org.id]) ? `
+                    <div class="tree-children ${expanded ? 'expanded' : ''}" data-children-of="${org.id}">
+                        ${(org.children || []).map(child => renderOrgNode(child, level + 1)).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            return html;
+        }
+
+        // ============ 展开/折叠 ============
+        function toggleOrg(orgId) {
+            closeAllOrgActions();
+            isExpanded[orgId] = !isExpanded[orgId];
+            renderTree();
+        }
+
+        // ============ 选中部门 ============
+        function selectOrg(orgId, orgName) {
+            closeAllOrgActions();
+            selectedOrgId = orgId;
+            selectedOrgName = orgName;
+            document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('selected'));
+            const node = document.querySelector(`[data-org-id="${orgId}"]`);
+            if (node) node.classList.add('selected');
+            updateBreadcrumb(orgName);
+            renderUserTable();
+        }
+
+        // ============ 操作菜单 ============
+        function toggleOrgActions(orgId) {
+            const menu = document.getElementById(`orgActions-${orgId}`);
+            if (activeActionOrgId === orgId) {
+                menu.classList.remove('active');
+                activeActionOrgId = null;
+            } else {
+                closeAllOrgActions();
+                menu.classList.add('active');
+                activeActionOrgId = orgId;
+            }
+        }
+
+        function closeAllOrgActions() {
+            document.querySelectorAll('.tree-node-actions').forEach(m => m.classList.remove('active'));
+            activeActionOrgId = null;
+        }
+
+        // 点击空白处关闭菜单
+        document.addEventListener('click', function() {
+            closeAllOrgActions();
+        });
+
+        // ============ 弹窗变量 ============
+        let deptModalMode = 'add'; // 'add' | 'edit'
+        let deptModalParentId = null;
+        let deptEditId = null;
+
+        // ============ 新增下级部门 ============
+        function openAddDept(parentId, parentName) {
+            closeAllOrgActions();
+            deptModalMode = 'add';
+            deptModalParentId = parentId;
+            document.getElementById('deptModalIcon').className = 'ri-folder-add-line';
+            document.getElementById('deptModalTitle').textContent = '新增下级部门';
+            document.getElementById('deptParentName').textContent = parentName;
+            document.getElementById('deptName').value = '';
+            document.getElementById('deptCode').value = '';
+            document.getElementById('deptRemark').value = '';
+            document.getElementById('deptModal').classList.add('active');
+            setTimeout(() => document.getElementById('deptName').focus(), 100);
+        }
+
+        // ============ 编辑部门 ============
+        function openEditDept(orgId) {
+            closeAllOrgActions();
+            const result = findNode(orgId, organizations);
+            if (!result) return;
+            const { node, parent } = result;
+            deptModalMode = 'edit';
+            deptEditId = orgId;
+            document.getElementById('deptModalIcon').className = 'ri-edit-line';
+            document.getElementById('deptModalTitle').textContent = '编辑部门';
+            document.getElementById('deptParentName').textContent = parent ? parent.name : '—';
+            document.getElementById('deptName').value = node.name;
+            document.getElementById('deptCode').value = node.code;
+            document.getElementById('deptRemark').value = node.remark || '';
+            document.getElementById('deptModal').classList.add('active');
+            setTimeout(() => document.getElementById('deptName').focus(), 100);
+        }
+
+        // ============ 关闭弹窗 ============
+        function closeDeptModal() {
+            document.getElementById('deptModal').classList.remove('active');
+        }
+
+        // ============ 提交弹窗 ============
+        function submitDeptModal() {
+            const name = document.getElementById('deptName').value.trim();
+            const code = document.getElementById('deptCode').value.trim();
+            const remark = document.getElementById('deptRemark').value.trim();
+
+            if (!name) {
+                document.getElementById('deptName').focus();
+                showToast('部门名称不能为空', 'danger');
+                return;
+            }
+            if (!code) {
+                document.getElementById('deptCode').focus();
+                showToast('部门编码不能为空', 'danger');
+                return;
+            }
+
+            if (deptModalMode === 'add') {
+                // 找到父节点，追加子节点
+                const result = findNode(deptModalParentId, organizations);
+                if (result) {
+                    if (!result.node.children) result.node.children = [];
+                    result.node.children.push({ id: nextOrgId++, name, code, remark, children: [] });
+                    isExpanded[deptModalParentId] = true;
+                    renderTree();
+                    showToast(`部门「${name}」创建成功`, 'success');
+                }
+            } else {
+                // 找到节点，更新
+                const result = findNode(deptEditId, organizations);
+                if (result) {
+                    result.node.name = name;
+                    result.node.code = code;
+                    result.node.remark = remark;
+                    // 如果当前选中的是被编辑的节点，同步更新名称
+                    if (selectedOrgId === deptEditId) {
+                        selectedOrgName = name;
+                        updateBreadcrumb(name);
+                    }
+                    renderTree();
+                    showToast(`部门「${name}」更新成功`, 'success');
+                }
+            }
+
+            closeDeptModal();
+        }
+
+        // ============ 删除部门 ============
+        function deleteDept(orgId, orgName) {
+            closeAllOrgActions();
+            if (!confirm(`确定要删除部门「${orgName}」及其所有子部门吗？此操作不可恢复。`)) return;
+
+            const result = findNode(orgId, organizations);
+            if (result) {
+                const idx = result.siblings.indexOf(result.node);
+                if (idx > -1) {
+                    result.siblings.splice(idx, 1);
+                    // 如果删除的是当前选中的节点，回到第一个公司
+                    if (selectedOrgId === orgId) {
+                        selectedOrgId = 1;
+                        selectedOrgName = organizations[0].name;
+                        updateBreadcrumb(organizations[0].name);
+                        renderUserTable();
+                    }
+                    renderTree();
+                    showToast(`部门「${orgName}」已删除`, 'success');
+                }
+            }
+        }
+
+        // ============ 顶部新增部门按钮（新增根级子部门）============
+        function openOrgModal() {
+            const rootOrg = organizations[0];
+            openAddDept(rootOrg.id, rootOrg.name);
+        }
+
+        // ============ 面包屑 ============
+        function updateBreadcrumb(orgName) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = `
+                <i class="ri-home-line"></i>
+                <span>></span>
+                <span>组织管理</span>
+                <span>></span>
+                <span>${orgName}</span>
+            `;
+        }
+
+        // ============ 渲染用户表格 ============
+        function renderUserTable() {
+            const tbody = document.getElementById('userTableBody');
+            const filteredUsers = users.filter(user => {
+                return selectedOrgId === 1 || user.dept.includes(selectedOrgName);
+            });
+
+            if (filteredUsers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="ri-user-follow-line" style="font-size: 48px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+                            <p>该部门暂无用户</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredUsers.map(user => `
+                <tr>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="avatar">${user.nickname.charAt(0)}</div>
+                            <div>
+                                <div style="font-weight: 600;">${user.username}</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">${user.nickname}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${user.email}</td>
+                    <td>${user.dept}</td>
+                    <td><span class="status-badge ${user.status}">${user.status === 'active' ? '启用' : '停用'}</span></td>
+                    <td>${user.createTime}</td>
+                    <td>
+                        <button class="action-btn">编辑</button>
+                        <button class="action-btn">重置密码</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ============ 搜索 ============
+        function searchData() {
+            const name = document.getElementById('searchName').value.trim();
+            const status = document.getElementById('searchStatus').value;
+            console.log('[Search]', { name, status });
+        }
+
+        // ============ 部门选择弹窗 ============
+        let deptSelectExpanded = {};
+        let selectedDeptId = null;
+        let selectedDeptName = '';
+
+        function openDeptSelectModal() {
+            // 初始化：默认展开根节点
+            deptSelectExpanded[1] = true;
+            // 如果已经有选中的部门，回显选中状态
+            const currentDept = document.getElementById('userDept').value.trim();
+            if (currentDept && currentDept !== organizations[0].name) {
+                // 查找当前部门对应的ID
+                const result = findDeptByName(currentDept, organizations[0].children || [organizations[0]]);
+                if (result) {
+                    selectedDeptId = result.id;
+                    selectedDeptName = result.name;
+                }
+            } else {
+                selectedDeptId = null;
+                selectedDeptName = '';
+            }
+            renderDeptSelectTree();
+            document.getElementById('deptSelectModal').classList.add('active');
+        }
+
+        function closeDeptSelectModal() {
+            document.getElementById('deptSelectModal').classList.remove('active');
+        }
+
+        function findDeptByName(name, nodes) {
+            for (const node of nodes) {
+                if (node.name === name) return node;
+                if (node.children && node.children.length) {
+                    const result = findDeptByName(name, node.children);
+                    if (result) return result;
+                }
+            }
+            return null;
+        }
+
+        function renderDeptSelectTree() {
+            const container = document.getElementById('deptSelectTree');
+            const org = organizations[0];
+            container.innerHTML = renderDeptSelectNode(org, 1);
+        }
+
+        function renderDeptSelectNode(org, level) {
+            const hasChildren = org.children && org.children.length > 0;
+            const expanded = deptSelectExpanded[org.id];
+            const isSelected = selectedDeptId === org.id;
+            const isRoot = level === 1;
+
+            const html = `
+                <div>
+                    <div class="tree-node level-${level} ${isSelected ? 'selected' : ''}" 
+                         style="padding: 8px 8px;"
+                         onclick="selectDept(${org.id}, '${org.name}')">
+                        <span class="tree-toggle ${hasChildren ? (expanded ? 'expanded' : '') : 'hidden'}" 
+                              onclick="event.stopPropagation(); toggleDeptSelect(${org.id})">
+                            <i class="ri-arrow-right-s-line"></i>
+                        </span>
+                        <i class="${isRoot ? 'ri-building-line' : 'ri-folder-3-line'} tree-icon"></i>
+                        <span>${org.name}</span>
+                    </div>
+                    ${(hasChildren || deptSelectExpanded[org.id]) ? `
+                    <div class="tree-children ${expanded ? 'expanded' : ''}" style="margin-left: 16px;">
+                        ${(org.children || []).map(child => renderDeptSelectNode(child, level + 1)).join('')}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            return html;
+        }
+
+        function toggleDeptSelect(orgId) {
+            deptSelectExpanded[orgId] = !deptSelectExpanded[orgId];
+            renderDeptSelectTree();
+        }
+
+        function selectDept(deptId, deptName) {
+            selectedDeptId = deptId;
+            selectedDeptName = deptName;
+            renderDeptSelectTree();
+        }
+
+        function confirmDeptSelect() {
+            if (!selectedDeptId) {
+                showToast('请选择部门', 'danger');
+                return;
+            }
+            document.getElementById('userDept').value = selectedDeptName;
+            closeDeptSelectModal();
+        }
+
+        // ============ 新增用户弹窗 ============
+        let nextUserId = 100;
+
+        function openUserModal() {
+            // 预填当前选中部门
+            document.getElementById('userUsername').value = '';
+            document.getElementById('userNickname').value = '';
+            document.getElementById('userEmail').value = '';
+            document.getElementById('userPhone').value = '';
+            document.getElementById('userDept').value = selectedOrgId === organizations[0].id ? '' : selectedOrgName;
+            // 同步更新选中的部门ID
+            if (selectedOrgId !== organizations[0].id) {
+                const result = findDeptByName(selectedOrgName, organizations[0].children || [organizations[0]]);
+                if (result) {
+                    selectedDeptId = result.id;
+                    selectedDeptName = result.name;
+                }
+            }
+            document.getElementById('userStatus').value = 'active';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userModal').classList.add('active');
+            setTimeout(() => document.getElementById('userUsername').focus(), 100);
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        function submitUserModal() {
+            const username = document.getElementById('userUsername').value.trim();
+            const nickname = document.getElementById('userNickname').value.trim();
+            const email    = document.getElementById('userEmail').value.trim();
+            const dept     = document.getElementById('userDept').value.trim();
+            const status   = document.getElementById('userStatus').value;
+            const password = document.getElementById('userPassword').value.trim();
+
+            if (!username) { showToast('用户名不能为空', 'danger'); document.getElementById('userUsername').focus(); return; }
+            if (!nickname) { showToast('姓名不能为空', 'danger'); document.getElementById('userNickname').focus(); return; }
+            if (!email)    { showToast('邮箱不能为空', 'danger'); document.getElementById('userEmail').focus(); return; }
+            if (!dept)     { showToast('所属部门不能为空', 'danger'); document.getElementById('userDept').focus(); return; }
+            if (!password) { showToast('初始密码不能为空', 'danger'); document.getElementById('userPassword').focus(); return; }
+
+            const now = new Date();
+            const createTime = now.toISOString().replace('T', ' ').substring(0, 19);
+
+            users.push({
+                id: nextUserId++,
+                username,
+                nickname,
+                role: 'user',
+                email,
+                phone: document.getElementById('userPhone').value.trim(),
+                dept,
+                status,
+                createTime
+            });
+
+            renderUserTable();
+            closeUserModal();
+            showToast(`用户「${nickname}」新增成功`, 'success');
+        }
+
+        // ============ 初始化 ============
+        document.addEventListener('DOMContentLoaded', function() {
+            isExpanded[1] = true;
+            renderTree();
+            renderUserTable();
+            console.log('[Init] Organization management page loaded');
+        });
+    </script>
+</body>
+</html>

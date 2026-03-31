@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日志管理 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--column-bg);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--column-bg);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .status-code {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .time-cost {
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+        }
+
+        .time-fast {
+            color: var(--success);
+        }
+
+        .time-medium {
+            color: var(--warning);
+        }
+
+        .time-slow {
+            color: var(--danger);
+        }
+
+        .api-path, .access-path {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--column-bg);
+            padding: 4px 8px;
+            border-radius: 4px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .operation-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .op-create {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .op-update {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .op-delete {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .op-query {
+            background: #F3F4F6;
+            color: #4B5563;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--column-bg);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1200px) {
+            .search-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="header-left">
+            <div>
+                <h1 class="page-title">
+                    <i class="ri-file-list-3-line"></i>
+                    <span>日志管理</span>
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('api')">API日志</button>
+            <button class="tab" onclick="switchTab('site')">站点日志</button>
+            <button class="tab" onclick="switchTab('operation')">操作日志</button>
+        </div>
+
+        <!-- API日志 Tab -->
+        <div class="tab-content active" id="apiTab">
+            <div class="search-bar">
+                <div class="search-form">
+                    <div class="form-group">
+                        <label>调用应用名称</label>
+                        <input type="text" class="form-control" id="searchApiAppName" placeholder="请输入应用名称">
+                    </div>
+                    <div class="form-group">
+                        <label>被调用API名称</label>
+                        <input type="text" class="form-control" id="searchApiName" placeholder="请输入API名称">
+                    </div>
+                    <div class="form-group">
+                        <label>状态码</label>
+                        <select class="form-control" id="searchApiStatusCode">
+                            <option value="">全部</option>
+                            <option value="200">200 成功</option>
+                            <option value="400">400 错误请求</option>
+                            <option value="401">401 未授权</option>
+                            <option value="403">403 禁止访问</option>
+                            <option value="404">404 未找到</option>
+                            <option value="500">500 服务器错误</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>请求时间</label>
+                        <input type="date" class="form-control" id="searchApiDate">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="searchApiLog()" style="width: 100px;">
+                            <i class="ri-search-line"></i> 查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>调用应用名称</th>
+                            <th>调用应用标识</th>
+                            <th>被调用API名称</th>
+                            <th>被调用API标识</th>
+                            <th>状态码</th>
+                            <th>请求耗时(ms)</th>
+                            <th>请求时间</th>
+                            <th>API路径</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apiTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="apiEmptyState" style="display: none;">
+                    <i class="ri-inbox-line"></i>
+                    <p>暂无API调用记录</p>
+                </div>
+                <div class="pagination" id="apiPagination"></div>
+            </div>
+        </div>
+
+        <!-- 站点日志 Tab -->
+        <div class="tab-content" id="siteTab">
+            <div class="search-bar">
+                <div class="search-form">
+                    <div class="form-group">
+                        <label>访问用户名称</label>
+                        <input type="text" class="form-control" id="searchSiteUserName" placeholder="请输入用户名称">
+                    </div>
+                    <div class="form-group">
+                        <label>被访站点名称</label>
+                        <input type="text" class="form-control" id="searchSiteName" placeholder="请输入站点名称">
+                    </div>
+                    <div class="form-group">
+                        <label>状态码</label>
+                        <select class="form-control" id="searchSiteStatusCode">
+                            <option value="">全部</option>
+                            <option value="200">200 成功</option>
+                            <option value="301">301 永久重定向</option>
+                            <option value="302">302 临时重定向</option>
+                            <option value="400">400 错误请求</option>
+                            <option value="401">401 未授权</option>
+                            <option value="403">403 禁止访问</option>
+                            <option value="404">404 未找到</option>
+                            <option value="500">500 服务器错误</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>访问时间</label>
+                        <input type="date" class="form-control" id="searchSiteDate">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="searchSiteLog()" style="width: 100px;">
+                            <i class="ri-search-line"></i> 查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>访问用户名称</th>
+                            <th>访问用户账号</th>
+                            <th>被访站点名称</th>
+                            <th>被访站点标识</th>
+                            <th>状态码</th>
+                            <th>请求耗时(ms)</th>
+                            <th>请求时间</th>
+                            <th>访问路径</th>
+                        </tr>
+                    </thead>
+                    <tbody id="siteTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="siteEmptyState" style="display: none;">
+                    <i class="ri-inbox-line"></i>
+                    <p>暂无站点访问记录</p>
+                </div>
+                <div class="pagination" id="sitePagination"></div>
+            </div>
+        </div>
+
+        <!-- 操作日志 Tab -->
+        <div class="tab-content" id="operationTab">
+            <div class="search-bar">
+                <div class="search-form">
+                    <div class="form-group">
+                        <label>操作用户</label>
+                        <input type="text" class="form-control" id="searchOpUser" placeholder="请输入用户名称">
+                    </div>
+                    <div class="form-group">
+                        <label>操作类型</label>
+                        <select class="form-control" id="searchOpType">
+                            <option value="">全部</option>
+                            <option value="create">新增</option>
+                            <option value="update">修改</option>
+                            <option value="delete">删除</option>
+                            <option value="query">查询</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>操作对象</label>
+                        <input type="text" class="form-control" id="searchOpTarget" placeholder="请输入操作对象">
+                    </div>
+                    <div class="form-group">
+                        <label>操作时间</label>
+                        <input type="date" class="form-control" id="searchOpDate">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="searchOpLog()" style="width: 100px;">
+                            <i class="ri-search-line"></i> 查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>操作用户</th>
+                            <th>操作类型</th>
+                            <th>操作对象</th>
+                            <th>操作内容</th>
+                            <th>IP地址</th>
+                            <th>操作时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="opTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="opEmptyState" style="display: none;">
+                    <i class="ri-inbox-line"></i>
+                    <p>暂无操作记录</p>
+                </div>
+                <div class="pagination" id="opPagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API日志数据
+        let apiLogData = [
+            { id: 1, appName: '天气应用', appCode: 'weather_app', apiName: '天气查询API', apiCode: 'weather_query', statusCode: 200, timeCost: 45, requestTime: '2026-03-31 14:23:15', apiPath: '/api/v1/weather/query' },
+            { id: 2, appName: '导航应用', appCode: 'nav_app', apiName: '地图服务API', apiCode: 'map_service', statusCode: 200, timeCost: 120, requestTime: '2026-03-31 14:22:08', apiPath: '/api/v1/map/route' },
+            { id: 3, appName: '验证码服务', appCode: 'sms_service', apiName: '短信验证码API', apiCode: 'sms_verify', statusCode: 200, timeCost: 230, requestTime: '2026-03-31 14:20:45', apiPath: '/api/v1/sms/send' },
+            { id: 4, appName: '智能助手', appCode: 'ai_assistant', apiName: 'AI对话API', apiCode: 'ai_chat', statusCode: 200, timeCost: 850, requestTime: '2026-03-31 14:18:32', apiPath: '/api/v1/ai/chat' },
+            { id: 5, appName: '图像处理', appCode: 'img_processor', apiName: '图像识别API', apiCode: 'image_recognize', statusCode: 401, timeCost: 15, requestTime: '2026-03-31 14:15:20', apiPath: '/api/v1/image/recognize' },
+            { id: 6, appName: '语音播报', appCode: 'tts_service', apiName: '语音合成API', apiCode: 'tts_service', statusCode: 200, timeCost: 320, requestTime: '2026-03-31 14:12:10', apiPath: '/api/v1/tts/synthesize' },
+            { id: 7, appName: '数据分析', appCode: 'data_analyzer', apiName: '数据分析API', apiCode: 'data_analysis', statusCode: 500, timeCost: 1500, requestTime: '2026-03-31 14:08:55', apiPath: '/api/v1/data/analyze' },
+            { id: 8, appName: '天气应用', appCode: 'weather_app', apiName: '天气查询API', apiCode: 'weather_query', statusCode: 200, timeCost: 38, requestTime: '2026-03-31 14:05:42', apiPath: '/api/v1/weather/query' },
+            { id: 9, appName: '导航应用', appCode: 'nav_app', apiName: '地图服务API', apiCode: 'map_service', statusCode: 404, timeCost: 25, requestTime: '2026-03-31 14:02:18', apiPath: '/api/v1/map/location' },
+            { id: 10, appName: '智能助手', appCode: 'ai_assistant', apiName: 'AI对话API', apiCode: 'ai_chat', statusCode: 200, timeCost: 920, requestTime: '2026-03-31 13:58:33', apiPath: '/api/v1/ai/chat' },
+            { id: 11, appName: '验证码服务', appCode: 'sms_service', apiName: '短信验证码API', apiCode: 'sms_verify', statusCode: 403, timeCost: 12, requestTime: '2026-03-31 13:55:47', apiPath: '/api/v1/sms/send' },
+            { id: 12, appName: '图像处理', appCode: 'img_processor', apiName: '图像识别API', apiCode: 'image_recognize', statusCode: 200, timeCost: 560, requestTime: '2026-03-31 13:52:21', apiPath: '/api/v1/image/recognize' },
+        ];
+
+        // 站点日志数据
+        let siteLogData = [
+            { id: 1, userName: '张三', userAccount: 'zhangsan', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 200, timeCost: 125, requestTime: '2026-03-31 14:23:15', accessPath: '/home/index' },
+            { id: 2, userName: '李四', userAccount: 'lisi', siteName: '管理后台', siteCode: 'admin_console', statusCode: 200, timeCost: 85, requestTime: '2026-03-31 14:22:08', accessPath: '/dashboard/overview' },
+            { id: 3, userName: '王五', userAccount: 'wangwu', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 45, requestTime: '2026-03-31 14:20:45', accessPath: '/profile/settings' },
+            { id: 4, userName: '赵六', userAccount: 'zhaoliu', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 301, timeCost: 15, requestTime: '2026-03-31 14:18:32', accessPath: '/old/page' },
+            { id: 5, userName: '张三', userAccount: 'zhangsan', siteName: '管理后台', siteCode: 'admin_console', statusCode: 403, timeCost: 12, requestTime: '2026-03-31 14:15:20', accessPath: '/admin/config' },
+            { id: 6, userName: '李四', userAccount: 'lisi', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 230, requestTime: '2026-03-31 14:12:10', accessPath: '/orders/list' },
+            { id: 7, userName: '王五', userAccount: 'wangwu', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 404, timeCost: 25, requestTime: '2026-03-31 14:08:55', accessPath: '/missing/page' },
+            { id: 8, userName: '赵六', userAccount: 'zhaoliu', siteName: '管理后台', siteCode: 'admin_console', statusCode: 500, timeCost: 1200, requestTime: '2026-03-31 14:05:42', accessPath: '/api/report' },
+            { id: 9, userName: '张三', userAccount: 'zhangsan', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 68, requestTime: '2026-03-31 14:02:18', accessPath: '/messages/inbox' },
+            { id: 10, userName: '李四', userAccount: 'lisi', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 200, timeCost: 95, requestTime: '2026-03-31 13:58:33', accessPath: '/products/list' },
+            { id: 11, userName: '王五', userAccount: 'wangwu', siteName: '管理后台', siteCode: 'admin_console', statusCode: 401, timeCost: 18, requestTime: '2026-03-31 13:55:47', accessPath: '/secure/data' },
+            { id: 12, userName: '赵六', userAccount: 'zhaoliu', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 156, requestTime: '2026-03-31 13:52:21', accessPath: '/favorites/items' },
+        ];
+
+        // 操作日志数据
+        let opLogData = [
+            { id: 1, userName: '系统管理员', operationType: 'create', operationTarget: '用户管理', operationContent: '新增用户：张三', ipAddress: '192.168.1.100', operationTime: '2026-03-31 14:20:15' },
+            { id: 2, userName: '系统管理员', operationType: 'update', operationTarget: '角色管理', operationContent: '修改角色权限：管理员', ipAddress: '192.168.1.100', operationTime: '2026-03-31 14:15:30' },
+            { id: 3, userName: '张三', operationType: 'query', operationTarget: '网关管理', operationContent: '查询API列表', ipAddress: '192.168.1.101', operationTime: '2026-03-31 14:10:22' },
+            { id: 4, userName: '系统管理员', operationType: 'delete', operationTarget: '组织管理', operationContent: '删除部门：测试部', ipAddress: '192.168.1.100', operationTime: '2026-03-31 14:05:18' },
+            { id: 5, userName: '李四', operationType: 'create', operationTarget: 'API授权', operationContent: '申请API授权：天气查询API', ipAddress: '192.168.1.102', operationTime: '2026-03-31 13:58:45' },
+            { id: 6, userName: '系统管理员', operationType: 'update', operationTarget: '系统管理', operationContent: '修改系统配置', ipAddress: '192.168.1.100', operationTime: '2026-03-31 13:55:12' },
+            { id: 7, userName: '王五', operationType: 'query', operationTarget: '日志管理', operationContent: '查询API调用日志', ipAddress: '192.168.1.103', operationTime: '2026-03-31 13:50:33' },
+            { id: 8, userName: '系统管理员', operationType: 'create', operationTarget: '站点管理', operationContent: '新增站点：企业门户', ipAddress: '192.168.1.100', operationTime: '2026-03-31 13:45:28' },
+            { id: 9, userName: '赵六', operationType: 'update', operationTarget: '个人设置', operationContent: '修改个人信息', ipAddress: '192.168.1.104', operationTime: '2026-03-31 13:40:15' },
+            { id: 10, userName: '系统管理员', operationType: 'delete', operationTarget: '用户管理', operationContent: '删除用户：测试账号', ipAddress: '192.168.1.100', operationTime: '2026-03-31 13:35:42' },
+        ];
+
+        let filteredApiData = [...apiLogData];
+        let filteredSiteData = [...siteLogData];
+        let filteredOpData = [...opLogData];
+
+        let apiCurrentPage = 1;
+        let siteCurrentPage = 1;
+        let opCurrentPage = 1;
+        const pageSize = 10;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'api') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('apiTab').classList.add('active');
+            } else if (tab === 'site') {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('siteTab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(3)').classList.add('active');
+                document.getElementById('operationTab').classList.add('active');
+            }
+        }
+
+        // API日志相关函数
+        function getStatusCodeBadge(statusCode) {
+            if (statusCode >= 200 && statusCode < 300) {
+                return `<span class="status-code status-success">${statusCode}</span>`;
+            } else if (statusCode >= 400 && statusCode < 500) {
+                return `<span class="status-code status-warning">${statusCode}</span>`;
+            } else {
+                return `<span class="status-code status-error">${statusCode}</span>`;
+            }
+        }
+
+        function getTimeCostClass(timeCost) {
+            if (timeCost < 100) return 'time-fast';
+            if (timeCost < 500) return 'time-medium';
+            return 'time-slow';
+        }
+
+        function renderApiTable() {
+            const tbody = document.getElementById('apiTableBody');
+            const emptyState = document.getElementById('apiEmptyState');
+
+            if (filteredApiData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('apiPagination').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            document.getElementById('apiPagination').style.display = 'flex';
+
+            const startIndex = (apiCurrentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredApiData.length);
+            const pageData = filteredApiData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.appName}</td>
+                    <td>${item.appCode}</td>
+                    <td>${item.apiName}</td>
+                    <td>${item.apiCode}</td>
+                    <td>${getStatusCodeBadge(item.statusCode)}</td>
+                    <td class="time-cost ${getTimeCostClass(item.timeCost)}">${item.timeCost}ms</td>
+                    <td>${item.requestTime}</td>
+                    <td><span class="api-path" title="${item.apiPath}">${item.apiPath}</span></td>
+                </tr>
+            `).join('');
+
+            renderApiPagination();
+        }
+
+        function renderApiPagination() {
+            const totalPages = Math.ceil(filteredApiData.length / pageSize);
+            const pagination = document.getElementById('apiPagination');
+
+            let html = `
+                <button class="page-btn" onclick="goToApiPage(${apiCurrentPage - 1})" ${apiCurrentPage === 1 ? 'disabled' : ''}>
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= apiCurrentPage - 1 && i <= apiCurrentPage + 1)) {
+                    html += `<button class="page-btn ${i === apiCurrentPage ? 'active' : ''}" onclick="goToApiPage(${i})">${i}</button>`;
+                } else if (i === apiCurrentPage - 2 || i === apiCurrentPage + 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            html += `
+                <button class="page-btn" onclick="goToApiPage(${apiCurrentPage + 1})" ${apiCurrentPage === totalPages ? 'disabled' : ''}>
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToApiPage(page) {
+            const totalPages = Math.ceil(filteredApiData.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            apiCurrentPage = page;
+            renderApiTable();
+        }
+
+        function searchApiLog() {
+            const appName = document.getElementById('searchApiAppName').value;
+            const apiName = document.getElementById('searchApiName').value;
+            const statusCode = document.getElementById('searchApiStatusCode').value;
+            const date = document.getElementById('searchApiDate').value;
+
+            filteredApiData = apiLogData.filter(item => {
+                const matchAppName = !appName || item.appName.includes(appName);
+                const matchApiName = !apiName || item.apiName.includes(apiName);
+                const matchStatusCode = !statusCode || item.statusCode.toString() === statusCode;
+                const matchDate = !date || item.requestTime.startsWith(date);
+                return matchAppName && matchApiName && matchStatusCode && matchDate;
+            });
+
+            apiCurrentPage = 1;
+            renderApiTable();
+        }
+
+        // 站点日志相关函数
+        function renderSiteTable() {
+            const tbody = document.getElementById('siteTableBody');
+            const emptyState = document.getElementById('siteEmptyState');
+
+            if (filteredSiteData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('sitePagination').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            document.getElementById('sitePagination').style.display = 'flex';
+
+            const startIndex = (siteCurrentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredSiteData.length);
+            const pageData = filteredSiteData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.userName}</td>
+                    <td>${item.userAccount}</td>
+                    <td>${item.siteName}</td>
+                    <td>${item.siteCode}</td>
+                    <td>${getStatusCodeBadge(item.statusCode)}</td>
+                    <td class="time-cost ${getTimeCostClass(item.timeCost)}">${item.timeCost}ms</td>
+                    <td>${item.requestTime}</td>
+                    <td><span class="access-path" title="${item.accessPath}">${item.accessPath}</span></td>
+                </tr>
+            `).join('');
+
+            renderSitePagination();
+        }
+
+        function renderSitePagination() {
+            const totalPages = Math.ceil(filteredSiteData.length / pageSize);
+            const pagination = document.getElementById('sitePagination');
+
+            let html = `
+                <button class="page-btn" onclick="goToSitePage(${siteCurrentPage - 1})" ${siteCurrentPage === 1 ? 'disabled' : ''}>
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= siteCurrentPage - 1 && i <= siteCurrentPage + 1)) {
+                    html += `<button class="page-btn ${i === siteCurrentPage ? 'active' : ''}" onclick="goToSitePage(${i})">${i}</button>`;
+                } else if (i === siteCurrentPage - 2 || i === siteCurrentPage + 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            html += `
+                <button class="page-btn" onclick="goToSitePage(${siteCurrentPage + 1})" ${siteCurrentPage === totalPages ? 'disabled' : ''}>
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToSitePage(page) {
+            const totalPages = Math.ceil(filteredSiteData.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            siteCurrentPage = page;
+            renderSiteTable();
+        }
+
+        function searchSiteLog() {
+            const userName = document.getElementById('searchSiteUserName').value;
+            const siteName = document.getElementById('searchSiteName').value;
+            const statusCode = document.getElementById('searchSiteStatusCode').value;
+            const date = document.getElementById('searchSiteDate').value;
+
+            filteredSiteData = siteLogData.filter(item => {
+                const matchUserName = !userName || item.userName.includes(userName);
+                const matchSiteName = !siteName || item.siteName.includes(siteName);
+                const matchStatusCode = !statusCode || item.statusCode.toString() === statusCode;
+                const matchDate = !date || item.requestTime.startsWith(date);
+                return matchUserName && matchSiteName && matchStatusCode && matchDate;
+            });
+
+            siteCurrentPage = 1;
+            renderSiteTable();
+        }
+
+        // 操作日志相关函数
+        function getOperationTypeBadge(type) {
+            const typeMap = {
+                create: '<span class="operation-type op-create">新增</span>',
+                update: '<span class="operation-type op-update">修改</span>',
+                delete: '<span class="operation-type op-delete">删除</span>',
+                query: '<span class="operation-type op-query">查询</span>'
+            };
+            return typeMap[type] || type;
+        }
+
+        function renderOpTable() {
+            const tbody = document.getElementById('opTableBody');
+            const emptyState = document.getElementById('opEmptyState');
+
+            if (filteredOpData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('opPagination').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            document.getElementById('opPagination').style.display = 'flex';
+
+            const startIndex = (opCurrentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredOpData.length);
+            const pageData = filteredOpData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.userName}</td>
+                    <td>${getOperationTypeBadge(item.operationType)}</td>
+                    <td>${item.operationTarget}</td>
+                    <td>${item.operationContent}</td>
+                    <td>${item.ipAddress}</td>
+                    <td>${item.operationTime}</td>
+                </tr>
+            `).join('');
+
+            renderOpPagination();
+        }
+
+        function renderOpPagination() {
+            const totalPages = Math.ceil(filteredOpData.length / pageSize);
+            const pagination = document.getElementById('opPagination');
+
+            let html = `
+                <button class="page-btn" onclick="goToOpPage(${opCurrentPage - 1})" ${opCurrentPage === 1 ? 'disabled' : ''}>
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= opCurrentPage - 1 && i <= opCurrentPage + 1)) {
+                    html += `<button class="page-btn ${i === opCurrentPage ? 'active' : ''}" onclick="goToOpPage(${i})">${i}</button>`;
+                } else if (i === opCurrentPage - 2 || i === opCurrentPage + 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            html += `
+                <button class="page-btn" onclick="goToOpPage(${opCurrentPage + 1})" ${opCurrentPage === totalPages ? 'disabled' : ''}>
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToOpPage(page) {
+            const totalPages = Math.ceil(filteredOpData.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            opCurrentPage = page;
+            renderOpTable();
+        }
+
+        function searchOpLog() {
+            const userName = document.getElementById('searchOpUser').value;
+            const opType = document.getElementById('searchOpType').value;
+            const opTarget = document.getElementById('searchOpTarget').value;
+            const date = document.getElementById('searchOpDate').value;
+
+            filteredOpData = opLogData.filter(item => {
+                const matchUserName = !userName || item.userName.includes(userName);
+                const matchOpType = !opType || item.operationType === opType;
+                const matchOpTarget = !opTarget || item.operationTarget.includes(opTarget);
+                const matchDate = !date || item.operationTime.startsWith(date);
+                return matchUserName && matchOpType && matchOpTarget && matchDate;
+            });
+
+            opCurrentPage = 1;
+            renderOpTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderApiTable();
+            renderSiteTable();
+            renderOpTable();
+        });
+    </script>
+</body>
+</html>

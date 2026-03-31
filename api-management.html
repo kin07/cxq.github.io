@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API管理 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .page-container {
+            padding: 24px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-input {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table thead {
+            background: var(--column-bg);
+        }
+
+        .table th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .table tbody tr:hover {
+            background: var(--column-bg);
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.active {
+            background: #ECFDF5;
+            color: var(--success);
+        }
+
+        .status-badge.inactive {
+            background: #F1F5F9;
+            color: var(--text-secondary);
+        }
+
+        .visibility-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .visibility-badge.public {
+            background: #EFF6FF;
+            color: var(--primary);
+        }
+
+        .visibility-badge.internal {
+            background: #F1F5F9;
+            color: var(--text-secondary);
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+            margin-right: 6px;
+        }
+
+        .action-btn:hover {
+            background: var(--column-bg);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.2s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--column-bg);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .form-section {
+            margin-bottom: 24px;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--column-bg);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .text-area {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .text-area:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding: 16px;
+            }
+
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table {
+                font-size: 12px;
+            }
+
+            .table th, .table td {
+                padding: 10px 8px;
+            }
+
+            .action-btn {
+                padding: 4px 8px;
+                margin-right: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="page-header">
+            <h1 class="page-title">API管理</h1>
+            <button class="btn btn-primary" onclick="openModal('create')">
+                <i class="ri-add-line"></i>
+                新增API
+            </button>
+        </div>
+
+        <div class="search-section">
+            <div class="search-form">
+                <div class="form-group">
+                    <label class="form-label">API名称</label>
+                    <input type="text" class="form-input" placeholder="请输入API名称" id="searchName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API标识</label>
+                    <input type="text" class="form-input" placeholder="请输入API标识" id="searchCode">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">状态</label>
+                    <select class="form-input" id="searchStatus">
+                        <option value="">全部</option>
+                        <option value="active">启用</option>
+                        <option value="inactive">停用</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">可见性</label>
+                    <select class="form-input" id="searchVisibility">
+                        <option value="">全部</option>
+                        <option value="public">公开服务</option>
+                        <option value="internal">内部服务</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="searchAPIs()">
+                        <i class="ri-search-line"></i>
+                        查询
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetSearch()">
+                        <i class="ri-refresh-line"></i>
+                        重置
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>API名称</th>
+                        <th>API标识</th>
+                        <th>根路径</th>
+                        <th>可见性</th>
+                        <th>状态</th>
+                        <th>更新时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="apiTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal" id="apiModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">新增API</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="apiForm">
+                    <input type="hidden" id="editApiId">
+                    
+                    <div class="form-section">
+                        <h4 class="form-section-title">基础信息</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">所属应用 <span style="color: var(--danger);">*</span></label>
+                                <select class="form-input" id="apiApp" required>
+                                    <option value="">请选择应用</option>
+                                    <option value="APP001">应用-001</option>
+                                    <option value="APP002">应用-002</option>
+                                    <option value="APP003">应用-003</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API名称 <span style="color: var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="apiName" placeholder="请输入API名称" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">API标识 <span style="color: var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="apiCode" placeholder="请输入API标识" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">根路径 <span style="color: var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="apiPath" placeholder="/api/v1/example" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">目标服务器 <span style="color: var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="targetServer" placeholder="example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">目标路径 <span style="color: var(--danger);">*</span></label>
+                                <input type="text" class="form-input" id="targetPath" placeholder="/service/api" required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label class="form-label">API描述</label>
+                            <textarea class="text-area" id="apiDesc" placeholder="请输入API描述"></textarea>
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label class="form-label">网络协议</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item">
+                                    <input type="radio" name="protocol" value="HTTP" checked> HTTP
+                                </label>
+                                <label class="checkbox-item">
+                                    <input type="radio" name="protocol" value="HTTPS"> HTTPS
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label class="form-label">HTTP方法 <span style="color: var(--danger);">*</span></label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="ALL" checked> ALL</label>
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="GET"> GET</label>
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="POST"> POST</label>
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="PUT"> PUT</label>
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="DELETE"> DELETE</label>
+                                <label class="checkbox-item"><input type="checkbox" name="method" value="PATCH"> PATCH</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4 class="form-section-title">高级配置</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">负载方式</label>
+                                <select class="form-input" id="loadBalance">
+                                    <option value="random">随机轮询</option>
+                                    <option value="hash">一致性哈希</option>
+                                    <option value="least">最新链接数</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">签名方式</label>
+                                <select class="form-input" id="signType">
+                                    <option value="">无</option>
+                                    <option value="SHA256">SHA256</option>
+                                    <option value="SM3">SM3</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">连接超时(毫秒)</label>
+                                <input type="number" class="form-input" id="connectTimeout" value="3000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">发送超时(毫秒)</label>
+                                <input type="number" class="form-input" id="sendTimeout" value="5000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">接收超时(毫秒)</label>
+                                <input type="number" class="form-input" id="receiveTimeout" value="10000">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">调用频率(次/秒, 0=无限制)</label>
+                                <input type="number" class="form-input" id="rateLimit" value="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h4 class="form-section-title">访问控制</h4>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">可见性</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item">
+                                        <input type="radio" name="visibility" value="public"> 公开服务
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="radio" name="visibility" value="internal" checked> 内部服务
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">访问方式</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-item">
+                                        <input type="radio" name="access" value="allow" checked> 允许用户访问
+                                    </label>
+                                    <label class="checkbox-item">
+                                        <input type="radio" name="access" value="deny"> 不允许用户访问
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">IP限制</label>
+                                <select class="form-input" id="ipRestriction">
+                                    <option value="none">不限制</option>
+                                    <option value="whitelist">白名单</option>
+                                    <option value="blacklist">黑名单</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">启用状态</label>
+                                <select class="form-input" id="apiStatus">
+                                    <option value="active">启用</option>
+                                    <option value="inactive">停用</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveAPI()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let apis = [];
+        let currentEditingId = null;
+
+        function generateMockData() {
+            const methods = ['ALL', 'GET', 'POST', 'PUT', 'DELETE'];
+            const protocols = ['HTTP', 'HTTPS'];
+            const visibilities = ['public', 'internal'];
+            const statuses = ['active', 'inactive'];
+            const loadBalances = ['random', 'hash', 'least'];
+
+            for (let i = 1; i <= 15; i++) {
+                apis.push({
+                    id: i,
+                    name: `API-接口-${i}`,
+                    code: `API${String(i).padStart(3, '0')}`,
+                    app: `APP00${(i % 3) + 1}`,
+                    rootPath: `/api/v${(i % 3) + 1}/endpoint${i}`,
+                    targetServer: `server${(i % 4) + 1}.example.com`,
+                    targetPath: `/service/endpoint${i}`,
+                    description: `第${i}个API接口的详细描述`,
+                    protocol: protocols[i % protocols.length],
+                    methods: methods.slice(0, (i % 4) + 2),
+                    visibility: visibilities[i % visibilities.length],
+                    status: statuses[i % statuses.length],
+                    loadBalance: loadBalances[i % loadBalances.length],
+                    updateTime: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toLocaleString('zh-CN')
+                });
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('apiTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach((api, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><strong>${api.name}</strong></td>
+                    <td><code>${api.code}</code></td>
+                    <td><code>${api.rootPath}</code></td>
+                    <td>
+                        <span class="visibility-badge ${api.visibility}">
+                            ${api.visibility === 'public' ? '公开服务' : '内部服务'}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="status-badge ${api.status}">
+                            ${api.status === 'active' ? '启用' : '停用'}
+                        </span>
+                    </td>
+                    <td>${api.updateTime}</td>
+                    <td>
+                        <button class="action-btn" onclick="openModal('edit', ${api.id})">
+                            <i class="ri-edit-line"></i> 编辑
+                        </button>
+                        <button class="action-btn" onclick="toggleStatus(${api.id})">
+                            <i class="ri-toggle-line"></i> ${api.status === 'active' ? '停用' : '启用'}
+                        </button>
+                        <button class="action-btn delete" onclick="deleteAPI(${api.id})">
+                            <i class="ri-delete-bin-line"></i> 删除
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function openModal(mode, id = null) {
+            const modal = document.getElementById('apiModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('apiForm');
+
+            form.reset();
+
+            if (mode === 'edit' && id) {
+                title.textContent = '编辑API';
+                const api = apis.find(a => a.id === id);
+                if (api) {
+                    document.getElementById('editApiId').value = api.id;
+                    document.getElementById('apiApp').value = api.app;
+                    document.getElementById('apiName').value = api.name;
+                    document.getElementById('apiCode').value = api.code;
+                    document.getElementById('apiPath').value = api.rootPath;
+                    document.getElementById('targetServer').value = api.targetServer;
+                    document.getElementById('targetPath').value = api.targetPath;
+                    document.getElementById('apiDesc').value = api.description;
+                    document.getElementById('loadBalance').value = api.loadBalance;
+                    document.getElementById('apiStatus').value = api.status;
+                    document.querySelector(`input[name="protocol"][value="${api.protocol}"]`).checked = true;
+                    document.querySelector(`input[name="visibility"][value="${api.visibility}"]`).checked = true;
+                }
+            } else {
+                title.textContent = '新增API';
+                document.getElementById('editApiId').value = '';
+                document.querySelector('input[name="method"][value="ALL"]').checked = true;
+            }
+
+            modal.classList.add('active');
+            console.log(`[Modal] Opening API modal in ${mode} mode`);
+        }
+
+        function closeModal() {
+            document.getElementById('apiModal').classList.remove('active');
+        }
+
+        function saveAPI() {
+            const app = document.getElementById('apiApp').value;
+            const name = document.getElementById('apiName').value.trim();
+            const code = document.getElementById('apiCode').value.trim();
+            const rootPath = document.getElementById('apiPath').value.trim();
+            const targetServer = document.getElementById('targetServer').value.trim();
+            const targetPath = document.getElementById('targetPath').value.trim();
+            const description = document.getElementById('apiDesc').value.trim();
+            const protocol = document.querySelector('input[name="protocol"]:checked').value;
+            const status = document.getElementById('apiStatus').value;
+            const visibility = document.querySelector('input[name="visibility"]:checked').value;
+            const loadBalance = document.getElementById('loadBalance').value;
+            const editId = document.getElementById('editApiId').value;
+
+            if (!app || !name || !code || !rootPath || !targetServer || !targetPath) {
+                alert('请填写必填字段');
+                return;
+            }
+
+            const methods = Array.from(document.querySelectorAll('input[name="method"]:checked'))
+                .map(cb => cb.value);
+
+            if (editId) {
+                const index = apis.findIndex(a => a.id === parseInt(editId));
+                if (index !== -1) {
+                    apis[index] = {
+                        ...apis[index],
+                        app, name, code, rootPath, targetServer, targetPath,
+                        description, protocol, status, visibility, loadBalance, methods,
+                        updateTime: new Date().toLocaleString('zh-CN')
+                    };
+                    console.log(`[Update] API updated: ID=${editId}, Name=${name}`);
+                }
+            } else {
+                const newId = Math.max(...apis.map(a => a.id), 0) + 1;
+                apis.unshift({
+                    id: newId,
+                    app, name, code, rootPath, targetServer, targetPath,
+                    description, protocol, status, visibility, loadBalance, methods,
+                    updateTime: new Date().toLocaleString('zh-CN')
+                });
+                console.log(`[Create] API created: ID=${newId}, Name=${name}`);
+            }
+
+            renderTable(apis);
+            closeModal();
+            localStorage.setItem('apis', JSON.stringify(apis));
+            alert('保存成功');
+        }
+
+        function deleteAPI(id) {
+            if (confirm('确定要删除该API吗？删除后不可恢复。')) {
+                apis = apis.filter(a => a.id !== id);
+                renderTable(apis);
+                localStorage.setItem('apis', JSON.stringify(apis));
+                console.log(`[Delete] API deleted: ID=${id}`);
+                alert('删除成功');
+            }
+        }
+
+        function toggleStatus(id) {
+            const api = apis.find(a => a.id === id);
+            if (api) {
+                const newStatus = api.status === 'active' ? 'inactive' : 'active';
+                api.status = newStatus;
+                api.updateTime = new Date().toLocaleString('zh-CN');
+                renderTable(apis);
+                localStorage.setItem('apis', JSON.stringify(apis));
+                console.log(`[Status] API ${id} status changed to ${newStatus}`);
+                alert(newStatus === 'active' ? '已启用' : '已停用');
+            }
+        }
+
+        function searchAPIs() {
+            const nameKeyword = document.getElementById('searchName').value.toLowerCase();
+            const codeKeyword = document.getElementById('searchCode').value.toLowerCase();
+            const status = document.getElementById('searchStatus').value;
+            const visibility = document.getElementById('searchVisibility').value;
+
+            const filtered = apis.filter(api => {
+                const matchName = !nameKeyword || api.name.toLowerCase().includes(nameKeyword);
+                const matchCode = !codeKeyword || api.code.toLowerCase().includes(codeKeyword);
+                const matchStatus = !status || api.status === status;
+                const matchVisibility = !visibility || api.visibility === visibility;
+                return matchName && matchCode && matchStatus && matchVisibility;
+            });
+
+            renderTable(filtered);
+            console.log(`[Search] Found ${filtered.length} APIs matching criteria`);
+        }
+
+        function resetSearch() {
+            document.getElementById('searchName').value = '';
+            document.getElementById('searchCode').value = '';
+            document.getElementById('searchStatus').value = '';
+            document.getElementById('searchVisibility').value = '';
+            renderTable(apis);
+            console.log('[Search] Search criteria reset');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedApis = localStorage.getItem('apis');
+            if (savedApis) {
+                apis = JSON.parse(savedApis);
+            } else {
+                generateMockData();
+                localStorage.setItem('apis', JSON.stringify(apis));
+            }
+            renderTable(apis);
+            console.log('[Init] API management page loaded');
+        });
+
+        document.getElementById('apiModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API授权服务 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .back-btn {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .breadcrumb span {
+            margin: 0 4px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-value {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+            padding: 8px 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.enabled {
+            background: #DCFCE7;
+            color: #16A34A;
+        }
+
+        .status-badge.disabled {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-control[readonly] {
+            background: var(--column-bg);
+            cursor: not-allowed;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[type="radio"],
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--column-bg);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-approved {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-rejected {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            color: var(--primary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--column-bg);
+        }
+
+        .action-btn.danger {
+            color: var(--danger);
+        }
+
+        .action-btn.success {
+            color: var(--success);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--column-bg);
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-row label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .detail-item {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            width: 120px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+
+
+        @media (max-width: 1200px) {
+            .search-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .page-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .page-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .page-btn:disabled,
+        .page-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-ellipsis {
+            color: var(--text-secondary);
+            padding: 0 4px;
+        }
+        
+        .page-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-left: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="header-left">
+            <a href="index.html" class="btn btn-secondary back-btn">
+                <i class="ri-arrow-left-line"></i> 返回
+            </a>
+            <div>
+                <h1 class="page-title">
+                    <i class="ri-shield-key-line"></i>
+                    <span>API授权服务</span>
+                </h1>
+                <div class="breadcrumb">
+                    <i class="ri-home-line"></i>
+                    <span>></span>
+                    <span>系统管理</span>
+                    <span>></span>
+                    <span>API授权服务</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="search-bar">
+            <div class="search-form">
+                <div class="form-group">
+                    <label>API名称</label>
+                    <input type="text" class="form-control" id="searchApiName" placeholder="请输入API名称">
+                </div>
+                <div class="form-group">
+                    <label>申请系统</label>
+                    <input type="text" class="form-control" id="searchSystem" placeholder="请输入申请系统">
+                </div>
+                <div class="form-group">
+                    <label>状态</label>
+                    <select class="form-control" id="searchStatus">
+                        <option value="">全部</option>
+                        <option value="pending">审批中</option>
+                        <option value="approved">已审批</option>
+                        <option value="rejected">已拒绝</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="searchData()" style="width: 100px;">
+                        <i class="ri-search-line"></i> 查询
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>API名称</th>
+                        <th>申请系统</th>
+                        <th>申请应用</th>
+                        <th>申请时间</th>
+                        <th>到期时间</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 动态生成 -->
+                </tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="ri-inbox-line"></i>
+                <p>暂无授权记录</p>
+            </div>
+            <div id="paginationContainer"></div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">授权详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- 动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API授权审批弹窗 -->
+    <div class="modal-overlay" id="approveApiModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title">API授权审批</h3>
+                <button class="modal-close" onclick="closeApproveApiModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="approveApiContent">
+                <!-- 动态生成表单 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeApproveApiModal()">取消</button>
+                <button type="button" class="btn btn-success" id="confirmApproveBtn" onclick="confirmApprove()">确认通过</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑弹窗 -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">编辑授权</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="form-row">
+                    <label>到期时间</label>
+                    <input type="date" class="form-control" id="editExpireDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitEdit()">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据
+        let authData = [
+            { 
+                id: 1, 
+                apiName: '用户查询API', 
+                apiCode: 'API_USER_QUERY',
+                applySystem: '电商系统', 
+                applyApp: '订单管理', 
+                applyTime: '2026-03-20 10:30', 
+                expireDate: '2026-06-20', 
+                status: 'pending',
+                // API详细信息
+                rootPath: '/api/user',
+                targetServer: 'http://user-service:8080',
+                targetPath: '/v1/users',
+                protocol: 'HTTP',
+                httpMethod: 'GET',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '100次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 2, 
+                apiName: '支付接口', 
+                apiCode: 'API_PAYMENT',
+                applySystem: '财务系统', 
+                applyApp: '账单管理', 
+                applyTime: '2026-03-18 14:20', 
+                expireDate: '2026-09-18', 
+                status: 'approved',
+                rootPath: '/api/payment',
+                targetServer: 'http://payment-service:8080',
+                targetPath: '/v2/pay',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SM3',
+                loadBalance: '一致性哈希',
+                rateLimit: '50次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '白名单'
+            },
+            { 
+                id: 3, 
+                apiName: '库存查询API', 
+                apiCode: 'API_INVENTORY',
+                applySystem: '仓储系统', 
+                applyApp: '库存管理', 
+                applyTime: '2026-03-15 09:00', 
+                expireDate: '2026-12-15', 
+                status: 'approved',
+                rootPath: '/api/inventory',
+                targetServer: 'http://inventory-service:8080',
+                targetPath: '/v1/stock',
+                protocol: 'HTTP',
+                httpMethod: 'GET',
+                visibility: '内部服务',
+                accessType: '不允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '最新链接数',
+                rateLimit: '200次/分钟',
+                connectTimeout: 8000,
+                sendTimeout: 8000,
+                receiveTimeout: 8000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 4, 
+                apiName: '物流追踪API', 
+                apiCode: 'API_LOGISTICS',
+                applySystem: '物流系统', 
+                applyApp: '运输管理', 
+                applyTime: '2026-03-25 16:45', 
+                expireDate: '2026-04-25', 
+                status: 'pending',
+                rootPath: '/api/logistics',
+                targetServer: 'http://logistics-service:8080',
+                targetPath: '/v1/track',
+                protocol: 'HTTP',
+                httpMethod: 'GET,POST',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '80次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '黑名单'
+            },
+            { 
+                id: 5, 
+                apiName: '商品上架API', 
+                apiCode: 'API_PRODUCT',
+                applySystem: '商品系统', 
+                applyApp: '商品管理', 
+                applyTime: '2026-03-10 11:00', 
+                expireDate: '2026-03-12', 
+                status: 'rejected',
+                rootPath: '/api/product',
+                targetServer: 'http://product-service:8080',
+                targetPath: '/v1/add',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '允许用户访问',
+                enabled: false,
+                signType: 'SM3',
+                loadBalance: '随机轮询',
+                rateLimit: '30次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 6, 
+                apiName: '订单创建API', 
+                apiCode: 'API_ORDER_CREATE',
+                applySystem: '电商系统', 
+                applyApp: '订单中心', 
+                applyTime: '2026-03-28 09:15', 
+                expireDate: '2026-09-28', 
+                status: 'pending',
+                rootPath: '/api/order',
+                targetServer: 'http://order-service:8080',
+                targetPath: '/v1/create',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '一致性哈希',
+                rateLimit: '200次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 7, 
+                apiName: '短信发送API', 
+                apiCode: 'API_SMS_SEND',
+                applySystem: '消息系统', 
+                applyApp: '短信服务', 
+                applyTime: '2026-03-26 14:30', 
+                expireDate: '2026-12-26', 
+                status: 'approved',
+                rootPath: '/api/sms',
+                targetServer: 'http://sms-service:8080',
+                targetPath: '/v1/send',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '不允许用户访问',
+                enabled: true,
+                signType: 'SM3',
+                loadBalance: '随机轮询',
+                rateLimit: '500次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '白名单'
+            },
+            { 
+                id: 8, 
+                apiName: '文件上传API', 
+                apiCode: 'API_FILE_UPLOAD',
+                applySystem: '存储系统', 
+                applyApp: '文件服务', 
+                applyTime: '2026-03-22 11:20', 
+                expireDate: '2026-06-22', 
+                status: 'pending',
+                rootPath: '/api/file',
+                targetServer: 'http://file-service:8080',
+                targetPath: '/v1/upload',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '最新链接数',
+                rateLimit: '50次/分钟',
+                connectTimeout: 10000,
+                sendTimeout: 10000,
+                receiveTimeout: 10000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 9, 
+                apiName: '邮件发送API', 
+                apiCode: 'API_EMAIL_SEND',
+                applySystem: '消息系统', 
+                applyApp: '邮件服务', 
+                applyTime: '2026-03-24 16:00', 
+                expireDate: '2026-09-24', 
+                status: 'approved',
+                rootPath: '/api/email',
+                targetServer: 'http://email-service:8080',
+                targetPath: '/v1/send',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '不允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '100次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 10, 
+                apiName: '优惠券查询API', 
+                apiCode: 'API_COUPON_QUERY',
+                applySystem: '营销系统', 
+                applyApp: '优惠券中心', 
+                applyTime: '2026-03-27 10:45', 
+                expireDate: '2026-12-27', 
+                status: 'pending',
+                rootPath: '/api/coupon',
+                targetServer: 'http://coupon-service:8080',
+                targetPath: '/v1/query',
+                protocol: 'HTTP',
+                httpMethod: 'GET',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '300次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 11, 
+                apiName: '会员信息API', 
+                apiCode: 'API_MEMBER_INFO',
+                applySystem: '会员系统', 
+                applyApp: '会员中心', 
+                applyTime: '2026-03-23 13:30', 
+                expireDate: '2026-06-23', 
+                status: 'approved',
+                rootPath: '/api/member',
+                targetServer: 'http://member-service:8080',
+                targetPath: '/v1/info',
+                protocol: 'HTTPS',
+                httpMethod: 'GET',
+                visibility: '内部服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SM3',
+                loadBalance: '一致性哈希',
+                rateLimit: '150次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '白名单'
+            },
+            { 
+                id: 12, 
+                apiName: '退款申请API', 
+                apiCode: 'API_REFUND_APPLY',
+                applySystem: '财务系统', 
+                applyApp: '退款管理', 
+                applyTime: '2026-03-29 09:00', 
+                expireDate: '2026-09-29', 
+                status: 'pending',
+                rootPath: '/api/refund',
+                targetServer: 'http://refund-service:8080',
+                targetPath: '/v1/apply',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '50次/分钟',
+                connectTimeout: 8000,
+                sendTimeout: 8000,
+                receiveTimeout: 8000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 13, 
+                apiName: '数据统计API', 
+                apiCode: 'API_DATA_STATS',
+                applySystem: '数据系统', 
+                applyApp: '报表服务', 
+                applyTime: '2026-03-21 15:20', 
+                expireDate: '2026-03-21', 
+                status: 'rejected',
+                rootPath: '/api/stats',
+                targetServer: 'http://stats-service:8080',
+                targetPath: '/v1/report',
+                protocol: 'HTTP',
+                httpMethod: 'GET,POST',
+                visibility: '内部服务',
+                accessType: '不允许用户访问',
+                enabled: false,
+                signType: 'SM3',
+                loadBalance: '最新链接数',
+                rateLimit: '20次/分钟',
+                connectTimeout: 10000,
+                sendTimeout: 10000,
+                receiveTimeout: 10000,
+                ipLimitType: '黑名单'
+            },
+            { 
+                id: 14, 
+                apiName: '地址解析API', 
+                apiCode: 'API_ADDRESS_PARSE',
+                applySystem: '物流系统', 
+                applyApp: '地址服务', 
+                applyTime: '2026-03-30 11:10', 
+                expireDate: '2026-12-30', 
+                status: 'pending',
+                rootPath: '/api/address',
+                targetServer: 'http://address-service:8080',
+                targetPath: '/v1/parse',
+                protocol: 'HTTP',
+                httpMethod: 'POST',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '随机轮询',
+                rateLimit: '120次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 15, 
+                apiName: '评价提交API', 
+                apiCode: 'API_REVIEW_SUBMIT',
+                applySystem: '电商系统', 
+                applyApp: '评价中心', 
+                applyTime: '2026-03-19 16:45', 
+                expireDate: '2026-09-19', 
+                status: 'approved',
+                rootPath: '/api/review',
+                targetServer: 'http://review-service:8080',
+                targetPath: '/v1/submit',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '公开服务',
+                accessType: '允许用户访问',
+                enabled: true,
+                signType: 'SHA256',
+                loadBalance: '一致性哈希',
+                rateLimit: '80次/分钟',
+                connectTimeout: 5000,
+                sendTimeout: 5000,
+                receiveTimeout: 5000,
+                ipLimitType: '不限制'
+            },
+            { 
+                id: 16, 
+                apiName: '消息推送API', 
+                apiCode: 'API_PUSH_NOTIFY',
+                applySystem: '消息系统', 
+                applyApp: '推送服务', 
+                applyTime: '2026-03-17 08:30', 
+                expireDate: '2026-06-17', 
+                status: 'pending',
+                rootPath: '/api/push',
+                targetServer: 'http://push-service:8080',
+                targetPath: '/v1/notify',
+                protocol: 'HTTPS',
+                httpMethod: 'POST',
+                visibility: '内部服务',
+                accessType: '不允许用户访问',
+                enabled: true,
+                signType: 'SM3',
+                loadBalance: '最新链接数',
+                rateLimit: '1000次/分钟',
+                connectTimeout: 3000,
+                sendTimeout: 3000,
+                receiveTimeout: 3000,
+                ipLimitType: '白名单'
+            },
+        ];
+
+        let filteredData = [...authData];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                renderPagination();
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            // 分页计算
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+            
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.apiName}</td>
+                    <td>${item.applySystem}</td>
+                    <td>${item.applyApp}</td>
+                    <td>${item.applyTime}</td>
+                    <td>${item.expireDate}</td>
+                    <td>${getStatusBadge(item.status)}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="viewDetail(${item.id})">详情</button>
+                            ${item.status === 'pending' ? `
+                                <button class="action-btn success" onclick="approveAuth(${item.id})">通过</button>
+                                <button class="action-btn danger" onclick="rejectAuth(${item.id})">拒绝</button>
+                            ` : ''}
+                            ${item.status === 'approved' ? `
+                                <button class="action-btn danger" onclick="cancelAuth(${item.id})">取消授权</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            
+            renderPagination();
+        }
+        
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            if (filteredData.length === 0 || totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let html = '<div class="pagination">';
+            
+            // 上一页
+            html += `<button class="page-btn ${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+            
+            // 页码
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += '<span class="page-ellipsis">...</span>';
+                }
+            }
+            
+            // 下一页
+            html += `<button class="page-btn ${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+            
+            // 页码信息
+            html += `<span class="page-info">共 ${filteredData.length} 条，第 ${currentPage}/${totalPages} 页</span>`;
+            
+            html += '</div>';
+            paginationContainer.innerHTML = html;
+        }
+        
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                pending: '<span class="status-badge status-pending">审批中</span>',
+                approved: '<span class="status-badge status-approved">已审批</span>',
+                rejected: '<span class="status-badge status-rejected">已拒绝</span>'
+            };
+            return statusMap[status] || status;
+        }
+
+        function searchData() {
+            const apiName = document.getElementById('searchApiName').value;
+            const system = document.getElementById('searchSystem').value;
+            const status = document.getElementById('searchStatus').value;
+
+            filteredData = authData.filter(item => {
+                const matchApiName = !apiName || item.apiName.includes(apiName);
+                const matchSystem = !system || item.applySystem.includes(system);
+                const matchStatus = !status || item.status === status;
+                return matchApiName && matchSystem && matchStatus;
+            });
+
+            currentPage = 1; // 搜索后重置到第一页
+            renderTable();
+        }
+
+        function viewDetail(id) {
+            const item = authData.find(d => d.id === id);
+            if (!item) return;
+
+            const statusText = { pending: '审批中', approved: '已审批', rejected: '已拒绝' };
+            
+            // 如果有审批配置，显示配置信息
+            const approveConfigHtml = item.approveConfig ? `
+                <div class="detail-section" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+                    <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">审批配置</h4>
+                    <div class="detail-item">
+                        <span class="detail-label">调用频率</span>
+                        <span class="detail-value">${item.approveConfig.rateLimit}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">签名方式</span>
+                        <span class="detail-value">
+                            ${item.approveConfig.signMethods.signature ? '签名校验' : ''}
+                            ${item.approveConfig.signMethods.signature && item.approveConfig.signMethods.ipWhitelist ? '、' : ''}
+                            ${item.approveConfig.signMethods.ipWhitelist ? 'IP白名单' : ''}
+                            ${!item.approveConfig.signMethods.signature && !item.approveConfig.signMethods.ipWhitelist ? '无' : ''}
+                        </span>
+                    </div>
+                    ${item.approveConfig.signMethods.signature ? `
+                    <div class="detail-item">
+                        <span class="detail-label">签名算法</span>
+                        <span class="detail-value">${item.approveConfig.signMethods.signatureType}</span>
+                    </div>
+                    ` : ''}
+                    ${item.approveConfig.signMethods.ipWhitelist ? `
+                    <div class="detail-item">
+                        <span class="detail-label">IP白名单</span>
+                        <span class="detail-value" style="white-space: pre-line;">${item.approveConfig.signMethods.ipWhitelistValue || '-'}</span>
+                    </div>
+                    ` : ''}
+                    <div class="detail-item">
+                        <span class="detail-label">有效期</span>
+                        <span class="detail-value">${item.approveConfig.expireDate}</span>
+                    </div>
+                    ${item.approveConfig.advancedRules ? `
+                    <div class="detail-item">
+                        <span class="detail-label">高级规则</span>
+                        <span class="detail-value" style="white-space: pre-line;">${item.approveConfig.advancedRules}</span>
+                    </div>
+                    ` : ''}
+                </div>
+            ` : '';
+
+            document.getElementById('detailContent').innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="detail-item">
+                        <span class="detail-label">API名称</span>
+                        <span class="detail-value">${item.apiName}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">API标识</span>
+                        <span class="detail-value">${item.apiCode}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">申请系统</span>
+                        <span class="detail-value">${item.applySystem}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">申请应用</span>
+                        <span class="detail-value">${item.applyApp}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">申请时间</span>
+                        <span class="detail-value">${item.applyTime}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">到期时间</span>
+                        <span class="detail-value">${item.expireDate}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">状态</span>
+                        <span class="detail-value">${getStatusBadge(item.status)}</span>
+                    </div>
+                    
+                    <div class="detail-section" style="margin-top: 8px; padding-top: 20px; border-top: 1px solid var(--border);">
+                        <h4 style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">API信息</h4>
+                        <div class="detail-item">
+                            <span class="detail-label">根路径</span>
+                            <span class="detail-value">${item.rootPath}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">目标服务器</span>
+                            <span class="detail-value">${item.targetServer}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">目标路径</span>
+                            <span class="detail-value">${item.targetPath}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">协议</span>
+                            <span class="detail-value">${item.protocol}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">HTTP方法</span>
+                            <span class="detail-value">${item.httpMethod}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">可见性</span>
+                            <span class="detail-value">${item.visibility}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">访问方式</span>
+                            <span class="detail-value">${item.accessType}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">启用状态</span>
+                            <span class="detail-value"><span class="status-badge ${item.enabled ? 'enabled' : 'disabled'}">${item.enabled ? '启用' : '禁用'}</span></span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">签名方式</span>
+                            <span class="detail-value">${item.signType}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">负载方式</span>
+                            <span class="detail-value">${item.loadBalance}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">调用频率</span>
+                            <span class="detail-value">${item.rateLimit}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">IP限制</span>
+                            <span class="detail-value">${item.ipLimitType}</span>
+                        </div>
+                    </div>
+                    ${approveConfigHtml}
+                </div>
+            `;
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        let currentApproveId = null;
+
+        function approveAuth(id) {
+            const item = authData.find(d => d.id === id);
+            if (!item) return;
+
+            currentApproveId = id;
+            
+            // 构建授权审批表单
+            const content = document.getElementById('approveApiContent');
+            content.innerHTML = `
+                <form id="approveForm" style="display: flex; flex-direction: column; gap: 20px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">API名称</label>
+                        <input type="text" class="form-control" id="approveApiName" value="${item.apiName}" readonly>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">API标识</label>
+                        <input type="text" class="form-control" id="approveApiCode" value="${item.apiCode}" readonly>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">允许调用频率</label>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0;">
+                                <input type="radio" name="rateLimitType" value="max" checked onchange="toggleRateLimitInput()">
+                                <span>默认为被订阅API最大上限</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0;">
+                                <input type="radio" name="rateLimitType" value="custom" onchange="toggleRateLimitInput()">
+                                <span>自定义调用频率</span>
+                            </label>
+                            <input type="text" class="form-control" id="customRateLimit" placeholder="例如：100次/分钟" style="display: none; margin-left: 28px; margin-top: 4px;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">签名方式</label>
+                        <div style="display: flex; gap: 24px; padding: 4px 0;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="signMethod" value="signature" id="signSignature" onchange="toggleSignMethod()">
+                                <span>签名校验</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" name="signMethod" value="ipwhitelist" id="signIpWhitelist" onchange="toggleSignMethod()">
+                                <span>IP白名单</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" id="signatureTypeGroup" style="display: none; margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">签名算法</label>
+                        <select class="form-control" id="signatureType">
+                            <option value="SHA256">SHA256</option>
+                            <option value="SM3">SM3</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="ipWhitelistGroup" style="display: none; margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">IP白名单</label>
+                        <textarea class="form-control" id="ipWhitelist" rows="3" placeholder="每行一个IP地址，支持多个IP"></textarea>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">每行输入一个IP地址</div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">有效期</label>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0;">
+                                <input type="radio" name="expireType" value="forever" checked onchange="toggleExpireInput()">
+                                <span>永久有效</span>
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 4px 0;">
+                                <input type="radio" name="expireType" value="custom" onchange="toggleExpireInput()">
+                                <span>自定义</span>
+                            </label>
+                            <input type="date" class="form-control" id="customExpireDate" style="display: none; margin-left: 28px; margin-top: 4px;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="display: block; margin-bottom: 10px; font-weight: 500;">高级规则</label>
+                        <textarea class="form-control" id="advancedRules" rows="4" placeholder="请输入高级规则，每行一条"></textarea>
+                        <div style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">支持输入多条规则，每行一条</div>
+                    </div>
+                </form>
+            `;
+            
+            document.getElementById('approveApiModal').classList.add('active');
+        }
+
+        function toggleRateLimitInput() {
+            const rateLimitType = document.querySelector('input[name="rateLimitType"]:checked').value;
+            const customInput = document.getElementById('customRateLimit');
+            customInput.style.display = rateLimitType === 'custom' ? 'block' : 'none';
+        }
+
+        function toggleSignMethod() {
+            const signSignature = document.getElementById('signSignature').checked;
+            const signIpWhitelist = document.getElementById('signIpWhitelist').checked;
+            
+            document.getElementById('signatureTypeGroup').style.display = signSignature ? 'block' : 'none';
+            document.getElementById('ipWhitelistGroup').style.display = signIpWhitelist ? 'block' : 'none';
+        }
+
+        function toggleExpireInput() {
+            const expireType = document.querySelector('input[name="expireType"]:checked').value;
+            const customInput = document.getElementById('customExpireDate');
+            customInput.style.display = expireType === 'custom' ? 'block' : 'none';
+        }
+
+        function closeApproveApiModal() {
+            document.getElementById('approveApiModal').classList.remove('active');
+            currentApproveId = null;
+        }
+
+        function confirmApprove() {
+            if (!currentApproveId) return;
+            
+            // 收集表单数据
+            const rateLimitType = document.querySelector('input[name="rateLimitType"]:checked').value;
+            const rateLimit = rateLimitType === 'custom' 
+                ? document.getElementById('customRateLimit').value 
+                : '被订阅API最大上限';
+            
+            const signSignature = document.getElementById('signSignature').checked;
+            const signIpWhitelist = document.getElementById('signIpWhitelist').checked;
+            const signatureType = signSignature ? document.getElementById('signatureType').value : null;
+            const ipWhitelist = signIpWhitelist ? document.getElementById('ipWhitelist').value : null;
+            
+            const expireType = document.querySelector('input[name="expireType"]:checked').value;
+            const expireDate = expireType === 'custom' 
+                ? document.getElementById('customExpireDate').value 
+                : '永久有效';
+            
+            const advancedRules = document.getElementById('advancedRules').value;
+            
+            // 验证
+            if (signIpWhitelist && !ipWhitelist.trim()) {
+                alert('请填写IP白名单');
+                return;
+            }
+            if (expireType === 'custom' && !expireDate) {
+                alert('请选择到期时间');
+                return;
+            }
+            
+            const item = authData.find(d => d.id === currentApproveId);
+            if (item) {
+                // 保存授权配置
+                item.approveConfig = {
+                    rateLimit,
+                    signMethods: {
+                        signature: signSignature,
+                        ipWhitelist: signIpWhitelist,
+                        signatureType,
+                        ipWhitelistValue: ipWhitelist
+                    },
+                    expireDate,
+                    advancedRules
+                };
+                item.status = 'approved';
+                renderTable();
+                closeApproveApiModal();
+                alert('授权审批通过！');
+            }
+        }
+
+        function rejectAuth(id) {
+            const item = authData.find(d => d.id === id);
+            if (item && confirm(`确认拒绝「${item.apiName}」的授权申请？`)) {
+                item.status = 'rejected';
+                renderTable();
+            }
+        }
+
+        function openEditModal(id) {
+            const item = authData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('editId').value = id;
+            document.getElementById('editExpireDate').value = item.expireDate;
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function submitEdit() {
+            const id = parseInt(document.getElementById('editId').value);
+            const expireDate = document.getElementById('editExpireDate').value;
+
+            const item = authData.find(d => d.id === id);
+            if (item) {
+                item.expireDate = expireDate;
+                renderTable();
+                closeEditModal();
+            }
+        }
+
+        function cancelAuth(id) {
+            const item = authData.find(d => d.id === id);
+            if (item && confirm(`确认取消「${item.apiName}」的授权？`)) {
+                authData = authData.filter(d => d.id !== id);
+                filteredData = filteredData.filter(d => d.id !== id);
+                // 如果当前页没有数据了，回到上一页
+                const totalPages = Math.ceil(filteredData.length / pageSize);
+                if (currentPage > totalPages && currentPage > 1) {
+                    currentPage--;
+                }
+                renderTable();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable();
+        });
+    </script>
+</body>
+</html>

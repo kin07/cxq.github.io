@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限管理 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .page-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: white;
+            position: relative;
+        }
+
+        .page-header-actions {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            background: var(--primary-bg);
+        }
+
+        /* 菜单权限卡片 */
+        .perm-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .perm-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .perm-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .perm-card-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .perm-card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .perm-card-code {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            background: var(--column-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+
+        .perm-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .perm-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--primary-bg);
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .perm-item input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .perm-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .perm-item-checked {
+            background: #ECFDF5;
+        }
+
+        .perm-item-checked label {
+            color: var(--success);
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        /* 说明卡片 */
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .info-card-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-card-content {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .info-card-content code {
+            background: var(--column-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.success { background: #10B981; }
+        .toast.danger  { background: var(--danger); }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h2 class="page-title">
+            <i class="ri-lock-unlock-line"></i>
+            <span>权限管理</span>
+        </h2>
+        <div class="breadcrumb">
+            <i class="ri-home-line"></i>
+            <span>></span>
+            <span>系统管理</span>
+            <span>></span>
+            <span>权限管理</span>
+        </div>
+        <div class="page-header-actions">
+            <button class="btn btn-primary" onclick="savePermissions()">
+                <i class="ri-save-line"></i>
+                保存配置
+            </button>
+        </div>
+    </div>
+
+    <div class="content-area">
+        <!-- 说明卡片 -->
+        <div class="info-card">
+            <div class="info-card-title">
+                <i class="ri-information-line" style="color: var(--primary);"></i>
+                权限说明
+            </div>
+            <div class="info-card-content">
+                <p>• 菜单权限用于控制用户可访问的模块</p>
+                <p>• 每个菜单模块包含 <code>查看</code> 权限，如需更细粒度控制可在角色管理中配置</p>
+                <p>• 权限配置后，用户需要重新登录才能生效</p>
+            </div>
+        </div>
+
+        <!-- 菜单权限列表 -->
+        <div class="perm-cards" id="permCards">
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 菜单权限配置
+        const menuPermissions = [
+            { 
+                id: 'sys', 
+                name: '系统管理', 
+                code: 'sys', 
+                icon: 'ri-dashboard-line',
+                children: [
+                    { id: 'sys-api', name: 'API管理', code: 'sys-api' },
+                    { id: 'sys-site', name: '站点管理', code: 'sys-site' },
+                    { id: 'sys-auth', name: 'API授权服务', code: 'sys-auth' },
+                    { id: 'sys-sub', name: '订阅API记录', code: 'sys-sub' }
+                ]
+            },
+            { 
+                id: 'org', 
+                name: '组织管理', 
+                code: 'org',
+                icon: 'ri-team-line',
+                children: [
+                    { id: 'org-dept', name: '部门组织', code: 'org-dept' },
+                    { id: 'org-user', name: '用户列表', code: 'org-user' }
+                ]
+            },
+            { 
+                id: 'user', 
+                name: '用户管理', 
+                code: 'user',
+                icon: 'ri-user-settings-line',
+                children: [
+                    { id: 'user-list', name: '用户列表', code: 'user-list' },
+                    { id: 'user-add', name: '新增用户', code: 'user-add' },
+                    { id: 'user-edit', name: '编辑用户', code: 'user-edit' },
+                    { id: 'user-delete', name: '删除用户', code: 'user-delete' }
+                ]
+            },
+            { 
+                id: 'role', 
+                name: '角色管理', 
+                code: 'role',
+                icon: 'ri-shield-user-line',
+                children: [
+                    { id: 'role-list', name: '角色列表', code: 'role-list' },
+                    { id: 'role-add', name: '新增角色', code: 'role-add' },
+                    { id: 'role-edit', name: '编辑角色', code: 'role-edit' },
+                    { id: 'role-delete', name: '删除角色', code: 'role-delete' },
+                    { id: 'role-perm', name: '权限配置', code: 'role-perm' }
+                ]
+            },
+            { 
+                id: 'perm', 
+                name: '权限管理', 
+                code: 'perm',
+                icon: 'ri-lock-unlock-line',
+                children: [
+                    { id: 'perm-menu', name: '菜单权限', code: 'perm-menu' },
+                    { id: 'perm-data', name: '数据权限', code: 'perm-data' }
+                ]
+            },
+            { 
+                id: 'log', 
+                name: '操作日志', 
+                code: 'log',
+                icon: 'ri-file-list-3-line',
+                children: [
+                    { id: 'log-op', name: '操作记录', code: 'log-op' },
+                    { id: 'log-login', name: '登录日志', code: 'log-login' }
+                ]
+            }
+        ];
+
+        // 选中的权限（默认全选）
+        let selectedPermissions = [
+            'sys', 'sys-api', 'sys-site', 'sys-auth', 'sys-sub',
+            'org', 'org-dept', 'org-user',
+            'user', 'user-list', 'user-add', 'user-edit', 'user-delete',
+            'role', 'role-list', 'role-add', 'role-edit', 'role-delete', 'role-perm',
+            'perm', 'perm-menu', 'perm-data',
+            'log', 'log-op', 'log-login'
+        ];
+
+        // ============ 工具函数 ============
+        let toastTimer = null;
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'toast show ' + type;
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { el.className = 'toast'; }, 2500);
+        }
+
+        // ============ 渲染权限卡片 ============
+        function renderPermCards() {
+            const container = document.getElementById('permCards');
+            container.innerHTML = menuPermissions.map(menu => renderPermCard(menu)).join('');
+        }
+
+        function renderPermCard(menu) {
+            const isChecked = selectedPermissions.includes(menu.id);
+            const allChildrenChecked = menu.children && menu.children.every(c => selectedPermissions.includes(c.id));
+            const someChildrenChecked = menu.children && menu.children.some(c => selectedPermissions.includes(c.id));
+
+            let childrenHtml = '';
+            if (menu.children) {
+                childrenHtml = `<div class="perm-items">`;
+                childrenHtml += menu.children.map(child => {
+                    const childChecked = selectedPermissions.includes(child.id);
+                    return `
+                        <div class="perm-item ${childChecked ? 'perm-item-checked' : ''}">
+                            <input type="checkbox" id="perm-${child.id}" 
+                                ${childChecked ? 'checked' : ''} 
+                                onchange="togglePerm('${child.id}', this.checked)">
+                            <label for="perm-${child.id}">${child.name}</label>
+                        </div>
+                    `;
+                }).join('');
+                childrenHtml += `</div>`;
+            }
+
+            return `
+                <div class="perm-card">
+                    <div class="perm-card-header">
+                        <div class="perm-card-icon">
+                            <i class="${menu.icon}"></i>
+                        </div>
+                        <span class="perm-card-title">${menu.name}</span>
+                        <span class="perm-card-code">${menu.code}</span>
+                    </div>
+                    <div class="perm-items">
+                        <div class="perm-item ${isChecked && allChildrenChecked ? 'perm-item-checked' : ''}">
+                            <input type="checkbox" id="perm-${menu.id}" 
+                                ${allChildrenChecked ? 'checked' : ''} 
+                                onchange="toggleMenuPerms('${menu.id}', this.checked)">
+                            <label for="perm-${menu.id}" style="font-weight: 600;">全部权限</label>
+                        </div>
+                        ${childrenHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============ 切换权限 ============
+        function togglePerm(permId, checked) {
+            if (checked) {
+                if (!selectedPermissions.includes(permId)) {
+                    selectedPermissions.push(permId);
+                }
+            } else {
+                const idx = selectedPermissions.indexOf(permId);
+                if (idx > -1) {
+                    selectedPermissions.splice(idx, 1);
+                }
+            }
+            renderPermCards();
+        }
+
+        function toggleMenuPerms(menuId, checked) {
+            const menu = menuPermissions.find(m => m.id === menuId);
+            if (!menu) return;
+
+            if (checked) {
+                // 选中父级和所有子级
+                if (!selectedPermissions.includes(menuId)) {
+                    selectedPermissions.push(menuId);
+                }
+                if (menu.children) {
+                    menu.children.forEach(child => {
+                        if (!selectedPermissions.includes(child.id)) {
+                            selectedPermissions.push(child.id);
+                        }
+                    });
+                }
+            } else {
+                // 取消父级和所有子级
+                const idx = selectedPermissions.indexOf(menuId);
+                if (idx > -1) selectedPermissions.splice(idx, 1);
+                if (menu.children) {
+                    menu.children.forEach(child => {
+                        const cidx = selectedPermissions.indexOf(child.id);
+                        if (cidx > -1) selectedPermissions.splice(cidx, 1);
+                    });
+                }
+            }
+            renderPermCards();
+        }
+
+        // ============ 保存配置 ============
+        function savePermissions() {
+            console.log('[Save Permissions]', selectedPermissions);
+            showToast('菜单权限配置已保存', 'success');
+        }
+
+        // ============ 初始化 ============
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPermCards();
+            console.log('[Init] Permission management page loaded');
+        });
+    </script>
+</body>
+</html>

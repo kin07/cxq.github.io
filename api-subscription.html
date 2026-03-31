@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订阅API记录 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .back-btn {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .breadcrumb span {
+            margin: 0 4px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--column-bg);
+        }
+
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--column-bg);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .status-approved {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 4px 8px;
+            border: none;
+            background: none;
+            color: var(--primary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--column-bg);
+        }
+
+        .action-btn.danger {
+            color: var(--danger);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: var(--column-bg);
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .form-row {
+            margin-bottom: 16px;
+        }
+
+        .form-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-row label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .detail-item {
+            display: flex;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            width: 120px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .detail-value {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 1200px) {
+            .search-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="header-left">
+            <a href="index.html" class="btn btn-secondary back-btn">
+                <i class="ri-arrow-left-line"></i> 返回
+            </a>
+            <div>
+                <h1 class="page-title">
+                    <i class="ri-rss-line"></i>
+                    <span>订阅API记录</span>
+                </h1>
+                <div class="breadcrumb">
+                    <i class="ri-home-line"></i>
+                    <span>></span>
+                    <span>系统管理</span>
+                    <span>></span>
+                    <span>订阅API记录</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('subscribe')">订阅记录</button>
+            <button class="tab" onclick="switchTab('available')">可订阅API</button>
+        </div>
+
+        <!-- 订阅记录 Tab -->
+        <div class="tab-content active" id="subscribeTab">
+            <div class="search-bar">
+                <div class="search-form">
+                    <div class="form-group">
+                        <label>API名称</label>
+                        <input type="text" class="form-control" id="searchApiName" placeholder="请输入API名称">
+                    </div>
+                    <div class="form-group">
+                        <label>API标识</label>
+                        <input type="text" class="form-control" id="searchApiCode" placeholder="请输入API标识">
+                    </div>
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select class="form-control" id="searchStatus">
+                            <option value="">全部</option>
+                            <option value="pending">审核中</option>
+                            <option value="approved">已审批</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="searchData()" style="width: 100px;">
+                            <i class="ri-search-line"></i> 查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>API名称</th>
+                            <th>API标识</th>
+                            <th>所属系统</th>
+                            <th>所属应用</th>
+                            <th>到期时间</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <i class="ri-inbox-line"></i>
+                    <p>暂无订阅记录</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 可订阅API Tab -->
+        <div class="tab-content" id="availableTab">
+            <div class="search-bar">
+                <div class="search-form">
+                    <div class="form-group">
+                        <label>API名称</label>
+                        <input type="text" class="form-control" id="searchAvailableName" placeholder="请输入API名称">
+                    </div>
+                    <div class="form-group">
+                        <label>所属系统</label>
+                        <input type="text" class="form-control" id="searchAvailableSystem" placeholder="请输入所属系统">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="searchAvailableData()" style="width: 100px;">
+                            <i class="ri-search-line"></i> 查询
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="data-table">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>API名称</th>
+                            <th>API标识</th>
+                            <th>所属系统</th>
+                            <th>所属应用</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="availableTableBody">
+                        <!-- 动态生成 -->
+                    </tbody>
+                </table>
+                <div class="empty-state" id="availableEmptyState" style="display: none;">
+                    <i class="ri-inbox-line"></i>
+                    <p>暂无可订阅的API</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="modal-overlay" id="detailModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">订阅详情</h3>
+                <button class="modal-close" onclick="closeDetailModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <!-- 动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 订阅申请弹窗 -->
+    <div class="modal-overlay" id="subscribeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">订阅API申请</h3>
+                <button class="modal-close" onclick="closeSubscribeModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="subscribeApiId">
+                <div class="form-row">
+                    <label>API名称</label>
+                    <input type="text" class="form-control" id="subscribeApiName" readonly>
+                </div>
+                <div class="form-row">
+                    <label>API标识</label>
+                    <input type="text" class="form-control" id="subscribeApiCode" readonly>
+                </div>
+                <div class="form-row">
+                    <label>申请服务应用ID <span style="color: var(--danger);">*</span></label>
+                    <input type="text" class="form-control" id="subscribeAppId" placeholder="请输入申请服务应用ID">
+                </div>
+                <div class="form-row">
+                    <label>鉴权方式</label>
+                    <div style="display: flex; gap: 24px; padding: 8px 0;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="authSignature" value="signature" onchange="toggleAuthMethod()">
+                            <span>签名校验</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="authIpWhitelist" value="ipwhitelist" onchange="toggleAuthMethod()">
+                            <span>IP白名单</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-row" id="ipWhitelistRow" style="display: none;">
+                    <label>白名单IP地址</label>
+                    <textarea class="form-control" id="subscribeIpWhitelist" rows="3" placeholder="每行一个IP地址，支持多个IP"></textarea>
+                    <div style="font-size: 12px; color: var(--text-secondary); margin-top: 6px;">每行输入一个IP地址</div>
+                </div>
+                <div class="form-row">
+                    <label>有效期</label>
+                    <div style="display: flex; flex-direction: column; gap: 12px; padding: 4px 0;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="subscribeExpireType" value="permanent" checked onchange="toggleSubscribeExpireInput()">
+                            <span>永久有效</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="subscribeExpireType" value="custom" onchange="toggleSubscribeExpireInput()">
+                            <span>自定义</span>
+                        </label>
+                        <input type="date" class="form-control" id="subscribeExpireDate" style="display: none; margin-left: 24px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeSubscribeModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitSubscribe()">提交申请</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 续期弹窗 -->
+    <div class="modal-overlay" id="renewModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">续期</h3>
+                <button class="modal-close" onclick="closeRenewModal()">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="renewId">
+                <div class="form-row">
+                    <label>到期时间</label>
+                    <input type="date" class="form-control" id="renewExpireDate">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeRenewModal()">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitRenew()">确认续期</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 订阅记录数据
+        let subscriptionData = [
+            { id: 1, apiName: '天气查询API', apiCode: 'weather_query', system: '气象系统', app: '天气应用', expireDate: '2026-06-20', status: 'approved' },
+            { id: 2, apiName: '地图服务API', apiCode: 'map_service', system: '地图系统', app: '导航应用', expireDate: '2026-04-15', status: 'pending' },
+            { id: 3, apiName: '短信验证码API', apiCode: 'sms_verify', system: '消息系统', app: '验证码服务', expireDate: '2026-12-31', status: 'approved' },
+        ];
+
+        // 可订阅API数据
+        let availableApiData = [
+            { id: 101, apiName: 'AI对话API', apiCode: 'ai_chat', system: 'AI系统', app: '智能助手' },
+            { id: 102, apiName: '图像识别API', apiCode: 'image_recognize', system: '视觉系统', app: '图像处理' },
+            { id: 103, apiName: '语音合成API', apiCode: 'tts_service', system: '语音系统', app: '语音播报' },
+            { id: 104, apiName: '数据分析API', apiCode: 'data_analysis', system: '数据系统', app: '数据分析' },
+        ];
+
+        let filteredData = [...subscriptionData];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            if (tab === 'subscribe') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('subscribeTab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('availableTab').classList.add('active');
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = filteredData.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.apiName}</td>
+                    <td>${item.apiCode}</td>
+                    <td>${item.system}</td>
+                    <td>${item.app}</td>
+                    <td>${item.expireDate}</td>
+                    <td>${getStatusBadge(item.status)}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="viewDetail(${item.id})">查看</button>
+                            ${item.status === 'approved' ? `
+                                <button class="action-btn" onclick="openRenewModal(${item.id})">续期</button>
+                                <button class="action-btn danger" onclick="deleteSubscription(${item.id})">删除</button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderAvailableTable() {
+            const tbody = document.getElementById('availableTableBody');
+            const emptyState = document.getElementById('availableEmptyState');
+
+            if (availableApiData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = availableApiData.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.apiName}</td>
+                    <td>${item.apiCode}</td>
+                    <td>${item.system}</td>
+                    <td>${item.app}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="viewAvailableDetail(${item.id})">查看</button>
+                            <button class="action-btn" onclick="openSubscribeModal(${item.id})">申请</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const statusMap = {
+                pending: '<span class="status-badge status-pending">审核中</span>',
+                approved: '<span class="status-badge status-approved">已审批</span>'
+            };
+            return statusMap[status] || status;
+        }
+
+        function searchData() {
+            const apiName = document.getElementById('searchApiName').value;
+            const apiCode = document.getElementById('searchApiCode').value;
+            const status = document.getElementById('searchStatus').value;
+
+            filteredData = subscriptionData.filter(item => {
+                const matchApiName = !apiName || item.apiName.includes(apiName);
+                const matchApiCode = !apiCode || item.apiCode.includes(apiCode);
+                const matchStatus = !status || item.status === status;
+                return matchApiName && matchApiCode && matchStatus;
+            });
+
+            renderTable();
+        }
+
+        function searchAvailableData() {
+            const apiName = document.getElementById('searchAvailableName').value;
+            const system = document.getElementById('searchAvailableSystem').value;
+
+            const filtered = availableApiData.filter(item => {
+                const matchApiName = !apiName || item.apiName.includes(apiName);
+                const matchSystem = !system || item.system.includes(system);
+                return matchApiName && matchSystem;
+            });
+
+            const tbody = document.getElementById('availableTableBody');
+            const emptyState = document.getElementById('availableEmptyState');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            tbody.innerHTML = filtered.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.apiName}</td>
+                    <td>${item.apiCode}</td>
+                    <td>${item.system}</td>
+                    <td>${item.app}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="action-btn" onclick="viewAvailableDetail(${item.id})">查看</button>
+                            <button class="action-btn" onclick="openSubscribeModal(${item.id})">申请</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewDetail(id) {
+            const item = subscriptionData.find(d => d.id === id);
+            if (!item) return;
+
+            // 构建API地址（根据系统、应用和API标识生成）
+            const apiUrl = `https://api.example.com/${item.system}/${item.app}/${item.apiCode}`;
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">API名称</span>
+                    <span class="detail-value">${item.apiName}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">API标识</span>
+                    <span class="detail-value">${item.apiCode}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">API地址</span>
+                    <span class="detail-value">${apiUrl}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">所属系统</span>
+                    <span class="detail-value">${item.system}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">所属应用</span>
+                    <span class="detail-value">${item.app}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">到期时间</span>
+                    <span class="detail-value">${item.expireDate}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">状态</span>
+                    <span class="detail-value">${getStatusBadge(item.status)}</span>
+                </div>
+            `;
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+
+        function viewAvailableDetail(id) {
+            const item = availableApiData.find(d => d.id === id);
+            if (!item) return;
+
+            // 构建API地址（根据系统、应用和API标识生成）
+            const apiUrl = `https://api.example.com/${item.system}/${item.app}/${item.apiCode}`;
+
+            document.getElementById('detailContent').innerHTML = `
+                <div class="detail-item">
+                    <span class="detail-label">API名称</span>
+                    <span class="detail-value">${item.apiName}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">API标识</span>
+                    <span class="detail-value">${item.apiCode}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">API地址</span>
+                    <span class="detail-value">${apiUrl}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">所属系统</span>
+                    <span class="detail-value">${item.system}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">所属应用</span>
+                    <span class="detail-value">${item.app}</span>
+                </div>
+            `;
+
+            document.getElementById('detailModal').classList.add('active');
+        }
+
+        function openSubscribeModal(id) {
+            const item = availableApiData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('subscribeApiId').value = id;
+            document.getElementById('subscribeApiName').value = item.apiName;
+            document.getElementById('subscribeApiCode').value = item.apiCode;
+            // 自动赋值申请服务应用ID，使用应用编码作为默认值
+            document.getElementById('subscribeAppId').value = item.app;
+            document.getElementById('subscribeIpWhitelist').value = '';
+            document.getElementById('subscribeExpireDate').value = '';
+            
+            // 重置鉴权方式
+            document.getElementById('authSignature').checked = false;
+            document.getElementById('authIpWhitelist').checked = false;
+            document.getElementById('ipWhitelistRow').style.display = 'none';
+            
+            // 重置有效期
+            document.querySelector('input[name="subscribeExpireType"][value="permanent"]').checked = true;
+            document.getElementById('subscribeExpireDate').style.display = 'none';
+            
+            document.getElementById('subscribeModal').classList.add('active');
+        }
+
+        function closeSubscribeModal() {
+            document.getElementById('subscribeModal').classList.remove('active');
+        }
+        
+        function toggleAuthMethod() {
+            const authIpWhitelist = document.getElementById('authIpWhitelist').checked;
+            document.getElementById('ipWhitelistRow').style.display = authIpWhitelist ? 'block' : 'none';
+        }
+        
+        function toggleSubscribeExpireInput() {
+            const expireType = document.querySelector('input[name="subscribeExpireType"]:checked').value;
+            document.getElementById('subscribeExpireDate').style.display = expireType === 'custom' ? 'block' : 'none';
+        }
+
+        function submitSubscribe() {
+            const id = parseInt(document.getElementById('subscribeApiId').value);
+            const apiItem = availableApiData.find(d => d.id === id);
+            const appId = document.getElementById('subscribeAppId').value.trim();
+            
+            // 验证必填字段
+            if (!appId) {
+                alert('请输入申请服务应用ID');
+                return;
+            }
+            
+            // 验证鉴权方式至少选一项
+            const authSignature = document.getElementById('authSignature').checked;
+            const authIpWhitelist = document.getElementById('authIpWhitelist').checked;
+            if (!authSignature && !authIpWhitelist) {
+                alert('请至少选择一种鉴权方式');
+                return;
+            }
+            
+            // 验证IP白名单
+            if (authIpWhitelist) {
+                const ipWhitelist = document.getElementById('subscribeIpWhitelist').value.trim();
+                if (!ipWhitelist) {
+                    alert('请输入白名单IP地址');
+                    return;
+                }
+            }
+            
+            // 验证自定义到期时间
+            const expireType = document.querySelector('input[name="subscribeExpireType"]:checked').value;
+            if (expireType === 'custom') {
+                const expireDate = document.getElementById('subscribeExpireDate').value;
+                if (!expireDate) {
+                    alert('请选择到期时间');
+                    return;
+                }
+            }
+            
+            if (apiItem) {
+                const newSub = {
+                    id: subscriptionData.length + 1,
+                    apiName: apiItem.apiName,
+                    apiCode: apiItem.apiCode,
+                    system: apiItem.system,
+                    app: apiItem.app,
+                    appId: appId,
+                    authMethods: {
+                        signature: authSignature,
+                        ipWhitelist: authIpWhitelist
+                    },
+                    ipWhitelist: authIpWhitelist ? document.getElementById('subscribeIpWhitelist').value : null,
+                    expireDate: expireType === 'permanent' 
+                        ? '永久有效' 
+                        : document.getElementById('subscribeExpireDate').value,
+                    status: 'pending'
+                };
+                subscriptionData.push(newSub);
+                filteredData = [...subscriptionData];
+                renderTable();
+                closeSubscribeModal();
+                switchTab('subscribe');
+            }
+        }
+
+        function openRenewModal(id) {
+            const item = subscriptionData.find(d => d.id === id);
+            if (!item) return;
+
+            document.getElementById('renewId').value = id;
+            document.getElementById('renewExpireDate').value = item.expireDate;
+            document.getElementById('renewModal').classList.add('active');
+        }
+
+        function closeRenewModal() {
+            document.getElementById('renewModal').classList.remove('active');
+        }
+
+        function submitRenew() {
+            const id = parseInt(document.getElementById('renewId').value);
+            const expireDate = document.getElementById('renewExpireDate').value;
+
+            const item = subscriptionData.find(d => d.id === id);
+            if (item) {
+                item.expireDate = expireDate;
+                renderTable();
+                closeRenewModal();
+            }
+        }
+
+        function deleteSubscription(id) {
+            if (confirm('确认删除该订阅记录？')) {
+                subscriptionData = subscriptionData.filter(d => d.id !== id);
+                filteredData = filteredData.filter(d => d.id !== id);
+                renderTable();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable();
+            renderAvailableTable();
+        });
+    </script>
+</body>
+</html>

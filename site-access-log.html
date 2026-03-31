@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>站点访问日志 - 网关管理系统</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F9FAFB;
+            --column-bg: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --primary: #3B82F6;
+            --primary-dark: #2563EB;
+            --text-primary: #0F172A;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 14px;
+            min-height: 100vh;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .back-btn {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .page-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .breadcrumb {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .breadcrumb span {
+            margin: 0 4px;
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .search-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto;
+            gap: 16px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--column-bg);
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--column-bg);
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover td {
+            background: #F8FAFC;
+        }
+
+        .status-code {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .status-error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-warning {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .time-cost {
+            font-family: 'SF Mono', monospace;
+            font-size: 13px;
+        }
+
+        .time-fast {
+            color: var(--success);
+        }
+
+        .time-medium {
+            color: var(--warning);
+        }
+
+        .time-slow {
+            color: var(--danger);
+        }
+
+        .access-path {
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--column-bg);
+            padding: 4px 8px;
+            border-radius: 4px;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            padding: 20px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+
+        .page-btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--column-bg);
+        }
+
+        .page-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 1200px) {
+            .search-form {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div class="header-left">
+            <div>
+                <h1 class="page-title">
+                    <i class="ri-global-line"></i>
+                    <span>站点访问日志</span>
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="search-bar">
+            <div class="search-form">
+                <div class="form-group">
+                    <label>访问用户名称</label>
+                    <input type="text" class="form-control" id="searchUserName" placeholder="请输入用户名称">
+                </div>
+                <div class="form-group">
+                    <label>被访站点名称</label>
+                    <input type="text" class="form-control" id="searchSiteName" placeholder="请输入站点名称">
+                </div>
+                <div class="form-group">
+                    <label>状态码</label>
+                    <select class="form-control" id="searchStatusCode">
+                        <option value="">全部</option>
+                        <option value="200">200 成功</option>
+                        <option value="301">301 永久重定向</option>
+                        <option value="302">302 临时重定向</option>
+                        <option value="400">400 错误请求</option>
+                        <option value="401">401 未授权</option>
+                        <option value="403">403 禁止访问</option>
+                        <option value="404">404 未找到</option>
+                        <option value="500">500 服务器错误</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>访问时间</label>
+                    <input type="date" class="form-control" id="searchDate">
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="searchData()" style="width: 100px;">
+                        <i class="ri-search-line"></i> 查询
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="data-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>访问用户名称</th>
+                        <th>访问用户账号</th>
+                        <th>被访站点名称</th>
+                        <th>被访站点标识</th>
+                        <th>状态码</th>
+                        <th>请求耗时(ms)</th>
+                        <th>请求时间</th>
+                        <th>访问路径</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 动态生成 -->
+                </tbody>
+            </table>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="ri-inbox-line"></i>
+                <p>暂无站点访问记录</p>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        // 站点访问日志数据
+        let logData = [
+            { id: 1, userName: '张三', userAccount: 'zhangsan', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 200, timeCost: 125, requestTime: '2026-03-31 14:23:15', accessPath: '/home/index' },
+            { id: 2, userName: '李四', userAccount: 'lisi', siteName: '管理后台', siteCode: 'admin_console', statusCode: 200, timeCost: 85, requestTime: '2026-03-31 14:22:08', accessPath: '/dashboard/overview' },
+            { id: 3, userName: '王五', userAccount: 'wangwu', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 45, requestTime: '2026-03-31 14:20:45', accessPath: '/profile/settings' },
+            { id: 4, userName: '赵六', userAccount: 'zhaoliu', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 301, timeCost: 15, requestTime: '2026-03-31 14:18:32', accessPath: '/old/page' },
+            { id: 5, userName: '张三', userAccount: 'zhangsan', siteName: '管理后台', siteCode: 'admin_console', statusCode: 403, timeCost: 12, requestTime: '2026-03-31 14:15:20', accessPath: '/admin/config' },
+            { id: 6, userName: '李四', userAccount: 'lisi', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 230, requestTime: '2026-03-31 14:12:10', accessPath: '/orders/list' },
+            { id: 7, userName: '王五', userAccount: 'wangwu', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 404, timeCost: 25, requestTime: '2026-03-31 14:08:55', accessPath: '/missing/page' },
+            { id: 8, userName: '赵六', userAccount: 'zhaoliu', siteName: '管理后台', siteCode: 'admin_console', statusCode: 500, timeCost: 1200, requestTime: '2026-03-31 14:05:42', accessPath: '/api/report' },
+            { id: 9, userName: '张三', userAccount: 'zhangsan', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 68, requestTime: '2026-03-31 14:02:18', accessPath: '/messages/inbox' },
+            { id: 10, userName: '李四', userAccount: 'lisi', siteName: '企业门户', siteCode: 'enterprise_portal', statusCode: 200, timeCost: 95, requestTime: '2026-03-31 13:58:33', accessPath: '/products/list' },
+            { id: 11, userName: '王五', userAccount: 'wangwu', siteName: '管理后台', siteCode: 'admin_console', statusCode: 401, timeCost: 18, requestTime: '2026-03-31 13:55:47', accessPath: '/secure/data' },
+            { id: 12, userName: '赵六', userAccount: 'zhaoliu', siteName: '用户中心', siteCode: 'user_center', statusCode: 200, timeCost: 156, requestTime: '2026-03-31 13:52:21', accessPath: '/favorites/items' },
+        ];
+
+        let filteredData = [...logData];
+        let currentPage = 1;
+        const pageSize = 10;
+
+        function getStatusCodeBadge(statusCode) {
+            if (statusCode >= 200 && statusCode < 300) {
+                return `<span class="status-code status-success">${statusCode}</span>`;
+            } else if (statusCode >= 300 && statusCode < 400) {
+                return `<span class="status-code status-warning">${statusCode}</span>`;
+            } else if (statusCode >= 400 && statusCode < 500) {
+                return `<span class="status-code status-warning">${statusCode}</span>`;
+            } else {
+                return `<span class="status-code status-error">${statusCode}</span>`;
+            }
+        }
+
+        function getTimeCostClass(timeCost) {
+            if (timeCost < 100) return 'time-fast';
+            if (timeCost < 500) return 'time-medium';
+            return 'time-slow';
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.style.display = 'block';
+                document.getElementById('pagination').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            document.getElementById('pagination').style.display = 'flex';
+
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
+            const pageData = filteredData.slice(startIndex, endIndex);
+
+            tbody.innerHTML = pageData.map((item, index) => `
+                <tr>
+                    <td>${startIndex + index + 1}</td>
+                    <td>${item.userName}</td>
+                    <td>${item.userAccount}</td>
+                    <td>${item.siteName}</td>
+                    <td>${item.siteCode}</td>
+                    <td>${getStatusCodeBadge(item.statusCode)}</td>
+                    <td class="time-cost ${getTimeCostClass(item.timeCost)}">${item.timeCost}ms</td>
+                    <td>${item.requestTime}</td>
+                    <td><span class="access-path" title="${item.accessPath}">${item.accessPath}</span></td>
+                </tr>
+            `).join('');
+
+            renderPagination();
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const pagination = document.getElementById('pagination');
+
+            let html = `
+                <button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                    <i class="ri-arrow-left-s-line"></i>
+                </button>
+            `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                } else if (i === currentPage - 2 || i === currentPage + 2) {
+                    html += `<span>...</span>`;
+                }
+            }
+
+            html += `
+                <button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                    <i class="ri-arrow-right-s-line"></i>
+                </button>
+            `;
+
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderTable();
+        }
+
+        function searchData() {
+            const userName = document.getElementById('searchUserName').value;
+            const siteName = document.getElementById('searchSiteName').value;
+            const statusCode = document.getElementById('searchStatusCode').value;
+            const date = document.getElementById('searchDate').value;
+
+            filteredData = logData.filter(item => {
+                const matchUserName = !userName || item.userName.includes(userName);
+                const matchSiteName = !siteName || item.siteName.includes(siteName);
+                const matchStatusCode = !statusCode || item.statusCode.toString() === statusCode;
+                const matchDate = !date || item.requestTime.startsWith(date);
+                return matchUserName && matchSiteName && matchStatusCode && matchDate;
+            });
+
+            currentPage = 1;
+            renderTable();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTable();
+        });
+    </script>
+</body>
+</html>
